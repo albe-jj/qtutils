@@ -1,0 +1,4 @@
+a: 1
+b: -3/a
+'V_AC_bias: {'instrument': 'lia1','parameter': 'amplitude',  
+            'step': 0.1, 'inter_delay': 0.01, 'scale': 1/Vsource_gain*1e2*1e-6, 'unit':'uV'}, #1e3 -> is

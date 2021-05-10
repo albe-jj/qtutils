@@ -1,0 +1,56 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Mar 12 12:51:19 2021
+
+@author: atosato
+"""
+
+from qcodes import Station, Monitor
+from qcodes import Instrument
+from dummy_dev_config import DevConfig
+from measurement_sweeps import Sweep
+from sweep_seq import sweep_seq
+from qcodes.plots.pyqtgraph import QtPlot
+from qcodes.actions import BreakIf, Task
+
+
+# Instrument.close_all()
+
+# initialize the station
+station_config_path = r'V:\tnw\ns\qt\ScappucciLab\0_Group members\Alberto\Scripts\Measurement script\stations\dummy\config_dummy_station.yaml'
+if Station.default is None:
+    station = Station(config_file=station_config_path)
+else: station = Station.default
+
+station.load_mock_dac()
+station.load_mock_Rmeas()
+# station.load_instrument('mock_Rmeas') #this 
+
+dev_config = DevConfig()
+d = Instrument.find_instrument('d')
+# pw = QtPlot()
+
+#%%
+break_at_leakage = BreakIf(lambda: d.I_AC()>1)
+VACsweep = Sweep(sweep_param=d.Vb, plot_params=[d.I_AC, d.V_AC, d.R])
+# d.V_AC_bias(0)
+VACsweep.run(0,10,1, task_list=[break_at_leakage], cw=1)
+
+
+#%%
+Vg_sweep = Sweep(sweep_param=d.Vg, plot_params=[d.I_AC, d.V_AC, d.R])
+Vg_sweep.run(0,10,1)
+
+#%%
+Vb_sweep = Sweep(sweep_param=d.Vb, plot_params=[d.I_AC, d.V_AC, d.R])
+Vb_sweep.run(0,10,1)
+
+#%%
+# sweep_seq(
+#             outputs = [d.I_AC],
+#             sweep_param_ranges = [(d.V_AC_bias, [0, 100,1])],       
+#             plot_param_ls = [d.I_AC],
+#             clearwindow = 1, liveplotwindow = pw,
+#             delay=0
+#         )
+# QtPlot(figsize=[1000,400])

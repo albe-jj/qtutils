@@ -1,0 +1,76 @@
+instruments: 
+
+ 
+
+  ivvi:
+    type: qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI
+    enable_forced_reconnect: true
+    address: COM7
+    init:
+      name: ivvi
+      dac_step: 15
+      dac_delay: 0.01
+      polarity: ['BIP', 'BIP', 'BIP', 'BIP']
+      numdacs: 16
+      use_locks: True #shall this be false to avoid erro on abort sweep?
+
+
+  lia1:
+    type: qcodes.instrument_drivers.stanford_research.SR830.SR830
+    enable_forced_reconnect: true
+    address: GPIB0::7::INSTR
+    init:
+      name: lia1
+
+  lia2:
+    type: qcodes.instrument_drivers.stanford_research.SR830.SR830
+    enable_forced_reconnect: true
+    address: GPIB0::2::INSTR
+    init:
+      name: lia2
+
+  lia3:
+    type: qcodes.instrument_drivers.stanford_research.SR830.SR830
+    enable_forced_reconnect: true
+    address: GPIB0::12::INSTR
+    init:
+      name: lia3
+
+  
+  keithley: 
+    type: qcodes.instrument_drivers.tektronix.Keithley_6500.Keithley_6500
+    enable_forced_reconnect: true
+    address: USB0::0x05E6::0x6500::04472176::INSTR
+    init:
+      name: keithley
+
+
+ ############################
+  # mock_dac:
+  #   type: qcodes.tests.instrument_mocks.DummyInstrument
+  #   enable_forced_reconnect: true
+  #   init:
+  #     # To pass an list of items use {}.
+  #     gates: {"ch1", "ch2"}
+  #   add_parameters:
+  #     Bx: {source: ch1, label: Bx, unit: T,
+  #          scale: 28, limits: [-1, 1], monitor: true}
+ 
+
+  # mock_Rmeas:
+  #   type: dummy_instrument.Dummy_R_measure
+  #   enable_forced_reconnect: true
+
+
+  # ivvi:
+  #   type: qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI
+  #   address: ASRL1::INSTR
+  #   enable_forced_reconnect: true
+
+  #   init:
+  #     update_currents: false
+  #     dac_step: 15
+  #     dac_delay: 0.01
+  #     polarity: ['BIP', 'BIP', 'BIP', 'BIP']
+  #     numdacs: 16
+  #     use_locks: True)
