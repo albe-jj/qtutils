@@ -29,7 +29,7 @@ class Sweep:
         self.settable_params = self.settable_params()
         # self.location = Sweep.location
 
-    def run(self, sweep_ranges, cw=True, delays=0, task_list=[]):
+    def run(self, sweep_ranges, cw=True, delays=0, tasks=None):
         if not isinstance(sweep_ranges[0], list):
             sweep_ranges = [sweep_ranges]
         figsize = [350*len(self.plot_params), 250]
@@ -47,7 +47,7 @@ class Sweep:
             sweep_param_ranges = sweep_param_ranges,       
             plot_param_ls = self.plot_params,
             clearwindow = cw, liveplotwindow = self.plot_window,
-            delays=delays,  task_list=task_list
+            delays=delays,  tasks=tasks
         )
         
         

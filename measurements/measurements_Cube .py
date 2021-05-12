@@ -66,9 +66,9 @@ Vg_field_2Dsweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rx
 
 #%% Run sweep
 
-Vgsweep.run([-3180,-3490,3], task_list=[break_at_leakage], cw=0)
+Vgsweep.run([-3180,-3490,3], tasks=[[break_at_leakage]], cw=0)
 d.Vg(-3180)
-Vgsweep.run([-3160,-3460,3], task_list=[break_at_leakage], cw=0)
+Vgsweep.run([-3160,-3460,3], tasks=[[break_at_leakage]], cw=0)
 
 
 # Vgsweep.run([d.Vg(),-3120,.5], task_list=[break_at_leakage], cw=0)

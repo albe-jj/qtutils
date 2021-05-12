@@ -17,6 +17,7 @@ from functools import partial
 from time import sleep
 from window_mngr import bring_up_window, position_window, resize_window
 import os
+from qcodes.plots.pyqtgraph import QtPlot
 #%%
 def set_station_dev(st,dv):
     global station
@@ -84,7 +85,7 @@ def ramp_param(values, index=0, settle_time=1, verbose = False):
 
 def add_liveplot(liveplotwindow, y_plt, maxplots, clw, plot_idx_ls):
     if liveplotwindow is None:
-        liveplotwindow = liveplot
+        liveplotwindow = QtPlot()
     if liveplotwindow is not None:
         # liveplotwindow.win.show()
         liveplotwindow.win.show()
@@ -101,97 +102,13 @@ def add_liveplot(liveplotwindow, y_plt, maxplots, clw, plot_idx_ls):
                 j = j + 1
         return Task(liveplotwindow.update)
 
-def autorange_li():
-    # time.sleep(3)
-    station.lia1.auto_gain()
-    time.sleep(3)
-    
-def kick_gate():
-    hallbar.Vg(1000)
-    print('gate set to +2000 mV')
-    hallbar.Vg(-1400)
-    print('gate set to -1400 mV')
-    time.sleep(10)
-    
-def measure_Rn():
-    hallbar.DC_offset(0)
-    magnet_ramp_up(field=.12) # set B > Bc
-    save_Rn_tofile(file_path)
-    magnet_ramp_down(field=0)
-    station.magnet.field(0)
-    time.sleep(1)
-    
-    
-    
-   
-def create_Rn_file():
-    start_time = int(time.time())
-    start_date = date.today()
-    folder_path = Path(r'D:\LeidenMCK50_fridge\Scripts\Albo\data\Rn_steps\{}'.format(start_date))
-    folder_path.mkdir(parents=True, exist_ok=True)
-    file_path = folder_path / Path('{}steps.txt'.format(start_time))
-    with open(file_path, 'w') as f:
-        f.write("{}\t{}\t{}\t{}\t{}\n".format("Vxx", 'Vxx_DC', "Isd",'B','seat'))
-        f.write("{}\t{}\t{}\t{}\t{}\n".format("V", "V", "A", 'T',''))
-    return file_path
-        
-def save_Rn_tofile(file_path):
-    sample=cryomux.sample()
-    Vxx = hallbar.Vxx()
-    Isd = hallbar.Isd()
-    B = station.magnet.field()
-    Vxx_DC = hallbar.Vxx_DC()
-    with open(file_path, 'a') as f:   
-            f.write(f"\t{Vxx}\t{Vxx_DC}\t{Isd}\t{B}\t{sample}\n")
-            
-def autorange_lia(srs, max_changes=5):
-    def autorange_once():
-        r = srs.R.get()
-        sens = srs.sensitivity.get()
-        if r > 0.9 * sens:
-            return srs.increment_sensitivity()
-        elif r < 0.1 * sens:
-            return srs.decrement_sensitivity()
-        return False
 
-    sets = 0
-    while autorange_once() and sets < max_changes:
-        sets += 1
-        time.sleep(srs.time_constant.get())
-            
-def autorange_lia1_special():
-    time.sleep(1)
-    lia1 = station.lia1
-    autorange_lia(lia1, max_changes=30)  
-    lia1.increment_sensitivity()
-    # lia1.increment_sensitivity()
-
-def autorange_lia2_special():
-    time.sleep(1)
-    lia2 = station.lia2
-    autorange_lia(lia2, max_changes=30)  
-    lia2.increment_sensitivity()
-    # lia1.increment_sensitivity()
-            
-    
-def set_VAC():
-    while dev.V_AC()>1e-6 and dev.V_AC_bias()>1:
-        new_bias = dev.V_AC_bias()-.1
-        dev.V_AC_bias(new_bias)
-        time.sleep(.5)
-
-def nothing():
-    return None
-
-# def check_leakage():
-#     condition = (dev.I_leak()>0.2 or dev.I_leak()<-0.2)
-#     return condition
 #%%Function to make a 2D sweep(sweep and step two parameters)
 def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
               location=None, delays= None, file_label='', 
               liveplotting = True, liveplotwindow=None, settle_time=0, 
-              maxplots=6, randomize = None, verbose = 1, update_dim = None, clearwindow = True,
-              meas_Rn=False, ar_lia2=False, VAC_range=False, task_list=None,
+              maxplots=6, randomize = None, verbose = 1, plt_update_dim = None, clearwindow = True,
+              meas_Rn=False, ar_lia2=False, VAC_range=False, tasks=None,
               use_threads=False, base_dir=None,
               **kwargs):
     """
@@ -199,12 +116,14 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
         outputs: arrays of measurement functions
         sequence: a pulselib sequence with optional internal sweeps
         sweep_param_ranges: list(tuple(Parameter,list(start, end, step))) extra
-            parameters to be swept.
+            parameters to be swept. [(*inner_sweep_params), ..., (*outer_sweep_params)]
         delays - a number of seconds to wait after setting a value before
             continuing. 0 (default) means no waiting and no warnings. > 0
             means to wait, potentially filling the delay time with monitoring,
             and give an error if you wait longer than expected.
         file_label: string to add to folder name
+        tasks: arrays of tasks [[*inner_loop_tasks], ..., [*outer_loop_tasks]]
+
     """
     
     # global station
@@ -238,8 +157,8 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
     if verbose > 0:
         print('%iD sweep detected' %dim_total)    
     
-    if not update_dim:
-        update_dim = dim_total
+    if not plt_update_dim:
+        plt_update_dim = dim_total
     
     ## Constructing the loops
     i = 0
@@ -320,22 +239,25 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
             plotupdate = add_liveplot(liveplotwindow, y_plt, maxplots, clearwindow, plot_idx_ls)
             gui_update = Task(pg.mkQApp().processEvents)
             
-    
-        ar_lia2_task = Task(autorange_lia2_special) if ar_lia2 else Task(nothing)
-        set_VAC_task = Task(set_VAC) if VAC_range else Task(nothing)
-        kick_gate_task = Task(kick_gate)
-        meas_Rn_task = Task(measure_Rn) if meas_Rn else Task(nothing)
-        # check_leak_task = Task(check_leakage)
-        
-        # qttBreak = qcodes.actions.BreakIf(check_leak_task)
+
         
         update_loop = loop
-        for k in range(dim_total-update_dim):
+        for k in range(dim_total-plt_update_dim):
             update_loop = update_loop.actions[0]
-        update_loop.actions.extend([plotupdate, gui_update] + task_list)#ar_task, kick_gate_task # update_loop.actions.extend([plotupdate, gui_update, qttBreak])#ar_task, kick_gate_task
+        update_loop.actions.extend([plotupdate, gui_update])
         update_loop.progress_interval = 5
         
-        data = loop.run()
+        
+        #loop from outer to inner loop to add tasks
+        if tasks is None:
+            tasks = [[]] * dim_param_sweep
+        loopi = loop
+        for i in range(dim_param_sweep): 
+            dim_i = dim_param_sweep -1 - i
+            loopi.actions.extend(tasks[dim_i])
+            loopi = loopi.actions[0]
+
+        data = loop.run(use_threads)
         
     # data.add_metadata({'gates': station.gates.allvalues()})
     if sequence:
