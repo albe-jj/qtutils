@@ -169,7 +169,7 @@ class APS100(VisaInstrument):
     def _set_field(self, field):
         '''if wait_field_to_target is True pauses sweep after reaching target
         with absoulute tolerance atol'''
-        self._go_to_target(field, atol=self._field_atol)
+        self._go_to_target(field, wait_field_to_target=self.wait_field_to_target, atol=self._field_atol)
 
     def _get_rampRate0(self):
         rate = self.query('rate? 0')
@@ -194,6 +194,7 @@ class APS100(VisaInstrument):
     def _set_llim(self, llim):
         '''llim: sweep lower limit in Tesla'''
         self.ask('llim {:.4f}'.format(llim*10))
+        log.debug(f'llim set to {llim}')
 
     def _get_ulim(self):
         r = self.query('ulim?')
@@ -204,6 +205,7 @@ class APS100(VisaInstrument):
     def _set_ulim(self, ulim):
         '''ulim: sweep upper limit in Tesla'''
         self.ask('ulim {:.4f}'.format(ulim*10))
+        log.debug(f'ulim set to {ulim}')
 
     def _get_sweep(self):
         r = self.query('sweep?')
@@ -212,6 +214,7 @@ class APS100(VisaInstrument):
     def _set_sweep(self, sweep):
         '''UP, DOWN, PAUSE, or ZERO'''
         self.ask('sweep {}'.format(sweep))
+        log.debug(f'sweep set to {sweep}')
 
     def _get_units(self):
         r = self.query('units?')
@@ -231,7 +234,7 @@ class APS100(VisaInstrument):
     def _set_heater(self, heater):
         r = self.ask_raw('pshtr {}'.format(heater))
 
-    def _go_to_target(self, target, atol):
+    def _go_to_target(self, target, wait_field_to_target=True, atol=0):
         '''
         atol: ablsolute tolerence (Tesla) to pause ramp
             default is 0.1 mT
@@ -246,20 +249,22 @@ class APS100(VisaInstrument):
 
         #TODO validate targert
 
+        field = self.field()
+        if target>field:
+            self.ulim(target)
+            sweep_dir = 'up'
+        elif target<field:
+            self.llim(target)
+            sweep_dir = 'down'
+        else:
+            return
+
         if self._can_start_ramping():
-            field = self.field()
-            if target>field:
-                self.ulim(target)
-                sweep_dir = 'up'
-            elif target<field:
-                self.llim(target)
-                sweep_dir = 'down'
-            else:
-                return
+            
 
             self.sweep(sweep_dir)
 
-            if self.wait_field_to_target:
+            if wait_field_to_target:
                 at_target = False
 
                 if atol==0: d = deque(maxlen=20)
@@ -282,6 +287,8 @@ class APS100(VisaInstrument):
         r = self.query('*STB?')
         bts = bin(int(r))
         sweep = self.sweep()
+        llim = self.llim()
+        ulim = self.ulim()
 
         if units == 'kG':
             cond.append('True')
@@ -301,6 +308,11 @@ class APS100(VisaInstrument):
 
         if sweep != 'Pause':
             log.warning('Sweep is in state: {}'.format(sweep))
+
+        if abs(ulim)<=9 and abs(llim)<=9:
+            cond.append(True)
+        else:
+            log.error(f'limits are beyond specs. llim={llim}, ulim={ulim}')
 
         can_start = all(cond)
 

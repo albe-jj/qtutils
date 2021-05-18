@@ -16,7 +16,7 @@ from scipy import constants
 import os
 import glob
 
-from path_utils import get_root, upload_to_Mdrive
+from qtutils.analysis.path_utils import get_root, upload_to_Mdrive
 
 
 
