@@ -6,12 +6,12 @@ import xarray as xr
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
-import plot_utils
-import ox_data_utils
-import data_utils
 
-from plot_utils import * 
-from import_data_utils import *
+# from qtutils.analysis import ox_data_utils
+from qtutils.analysis import data_utils
+
+from qtutils.analysis.plot_utils import * 
+from qtutils.analysis.import_data_utils import *
 from importlib import reload
 
 import sys
