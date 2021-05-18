@@ -69,7 +69,20 @@ class DataImporter:
 		
 		# create dataframe
 		df = pd.read_csv(file_path, sep='\t', skiprows=[0,1,2], usecols=usecol_idx, names=usecol_names)
+
+		# remove rows with nans in set_params
+		df.dropna(axis=0, subset=name_set_vals, inplace=True)
+
+		#set index
 		df.set_index(name_set_vals, inplace=True)
+
+		#remove parameters that are both set and saved, to avoid duplicate errors
+		duplicates = list(set(name_set_vals) & set(df.columns))
+		df.drop(columns=duplicates, inplace=True)
+
+
+
+
 		
 		# create DataSet and add metadata
 		ds = df.to_xarray()
@@ -97,16 +110,6 @@ class DataImporter:
 	#     ds['G'] = ds.I_AC/ds.V_AC*h/(2*ech**2)
 		return ds
 
-	def get_data_VDC(self, location, roll_window=1,  offset=0):
-		ds, df = get_data(location=location)
-	#	ds.G.plot(cmap='hot', vmin=0, vmax=3)
-		vdc = ds.V_DC.rolling(V_DC_bias=roll_window).mean()
-		dst = ds.assign_coords(VDC=vdc)
-		dst = dst.assign_coords(Vgss=ds.Vg)
-		fixed_offset = dst.VDC.mean('V_DC_bias')+offset
-		dst['VDC'] = dst.VDC-fixed_offset
-
-		return dst
 
 	def plot_VDC_map(self, location, stepped_var, offset=0, names_dict={}, roll_window=1):
 		ds, df = get_data(location)
