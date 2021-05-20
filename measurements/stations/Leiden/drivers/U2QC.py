@@ -106,7 +106,7 @@ class U2_moduleQC(Instrument):
 
     def _set_dacs_zero(self):
         for i in range(self._number_dacs):
-            self._set_dac(i, 0.0)
+            self[f'dac{i}'](0)
 
     def _set_dac(self, dac, value):
         return self.d5a.set_voltage(dac, value / self._gain)

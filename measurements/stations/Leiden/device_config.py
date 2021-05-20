@@ -24,7 +24,7 @@ class DevConfig:
     Vmeasure_gain_AC = 1e3 * 1  #V/V
     Vmeasure_gain_DC = 1e3 * 1 #V/V
 
-    Vsource_gain = 10e-3 #V/V
+    Vsource_gain = 1e-3 #V/V
     Isource_gain = 1e-6 #A/V
 
     Istill_gain = 20e-3 #A/V
@@ -37,18 +37,18 @@ class DevConfig:
                'step': 20, 'inter_delay': .1, 'unit':'mV', 'scale': 1/Vcg_gain},
         # 'Vcg2': {'instrument': 'ivvi','parameter': 'dac10', 
         #        'step': 20, 'inter_delay': .1, 'unit':'mV', 'scale': 1/Vcg_gain},
-        'field': {'instrument': 'magnet', 'parameter': 'field',
-                  'scale':1e-3, 'unit':'mT'},
-        # 'field': {'instrument':  'ivvi','parameter': 'dac8', 
-        #         'step': 0.05, 'inter_delay': 0.01, 'scale':1/(20*1e-3*0.113375), 'unit':'mT'}, 
+        # 'field': {'instrument': 'magnet', 'parameter': 'field',
+        #           'scale':1e-3, 'unit':'mT'},
+        'field': {'instrument':  'S4g','parameter': 'dac1', 
+                'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 5.6 mT per dac (50mA) 
         'V_AC_bias': {'instrument': 'lia1','parameter': 'amplitude',  
                 'step': 1, 'inter_delay': 0, 'scale':1/Vsource_gain*1e2*1e-6, 'unit':'uV'}, #1e2 -> isoiin is diveded by 100
         'V_DC_bias': {'instrument': 'ivvi','parameter': 'dac5', 
                       'step': 100, 'inter_delay': .0, 'scale': -1/Vsource_gain*1e3*1e-6, 'unit': 'uV'},#1e3 -> DAC is in mV
-        # 'I_DC_bias': {'instrument': 'ivvi','parameter': 'dac6', 
-        #               'step': 100, 'inter_delay': .05, 'scale': 1/(Isource_gain*1e9)*1e3, 'unit': 'nA'},#1e3 -> DAC is in mV
-        # 'I_AC_bias': {'instrument': 'lia1','parameter': 'amplitude', 
-        #               'step': .1, 'inter_delay': .05, 'scale': 1/(Isource_gain*1e9)*100, 'unit': 'nA'},
+        'I_DC_bias': {'instrument': 'ivvi','parameter': 'dac6', 
+                      'step': 100, 'inter_delay': .05, 'scale': 1/(Isource_gain*1e9)*1e3, 'unit': 'nA'},#1e3 -> DAC is in mV
+        'I_AC_bias': {'instrument': 'lia1','parameter': 'amplitude', 
+                      'step': .1, 'inter_delay': .05, 'scale': 1/(Isource_gain*1e9)*100, 'unit': 'nA'},
         
         'I_AC': {'instrument': 'lia2','parameter': 'X', 
               'unit':'A', 'scale': Imeasure_gain_AC},
@@ -77,6 +77,9 @@ class DevConfig:
                       'step': 100, 'inter_delay': .05, 'scale': 1/(Istill_gain*1e6)*1e3, 'unit': 'uA'}, #1e3 -> DAC is in mV
         'I_DC_still': {'instrument': 'ivvi','parameter': 'dac16', 
                       'step': 100, 'inter_delay': .05, 'scale': 1/(Imc_gain*1e6)*1e3, 'unit': 'uA'}, #1e3 -> DAC is in mV
+
+        'VAC_therm': {'instrument': 'lia3','parameter': 'amplitude',  
+                'step': 1, 'inter_delay': 0, 'scale':1/100e-6*1e-6, 'unit':'uV'}, #1e2 -> isoiin is diveded by 100
         }
 
 
