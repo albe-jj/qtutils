@@ -8,15 +8,14 @@ Created on Fri Mar 12 12:51:19 2021
 from qcodes import Station, Monitor, Parameter
 from qcodes import Instrument
 from importlib import reload
-from stations.Leiden.device_config import DevConfig
-from measurement_sweeps import Sweep
-from sweep_seq import sweep_seq
+from qtutils.measurements.stations.Leiden.device_config import DevConfig
+from qtutils.measurements.measurement_sweeps import Sweep
 from qcodes.plots.pyqtgraph import QtPlot
 from qcodes.actions import BreakIf, Task
 import time
 from pyvisa import ResourceManager
 import os
-os.chdir(r'M:\tnw\ns\qt\ScappucciLab\0_Group members\Alberto\Scripts\Measurement script')
+os.chdir(r'D:\Albo_LF\qtutils\measurements')
 
 rm = ResourceManager()
 
@@ -93,7 +92,7 @@ VDC_Vg_sweep = Sweep(sweep_params=[d.V_DC_bias, d.Vg], plot_params=[d.G, d.I_AC,
 # Vg_field_2Dsweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC])
 
 #%% Run sweep
-Vgsweep.run([d.Vg(),-3500,10], task_list=[break_at_leakage], cw=0)
+Vgsweep.run([d.Vg(),-100,10], tasks=[[break_at_leakage]], cw=0)
 # Vcgsweep.run([d.Vcg(),-870,3], delays=[0], task_list=[break_at_leakage], cw=1)
 # Vcgsweep.run([d.Vcg(),-500,5], delays=[0], task_list=[break_at_leakage], cw=0)
 VDCsweep.run([-200,200,1], cw=5)

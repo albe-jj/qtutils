@@ -4,7 +4,7 @@ Created on Fri Mar 12 12:56:23 2021
 
 @author: atosato
 """
-from device import Device
+from qtutils.measurements.virtual_instrument import VirtualInstrument
 from qcodes import Instrument
 import numpy as np
 from scipy import constants
@@ -87,7 +87,7 @@ class DevConfig:
         if Instrument.exist('d'):
             Instrument.find_instrument('d').close()
             
-        self.d = Device(name='d', parameter_map=self.dev_params)
+        self.d = VirtualInstrument(name='d', parameter_map=self.dev_params)
         
         #add calculated parameters
         self.d.add_parameter('G', get_cmd=self.calc_G, unit='2e^2/h')
