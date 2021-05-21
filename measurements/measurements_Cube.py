@@ -4,7 +4,8 @@ Created on Fri Mar 12 12:51:19 2021
 
 @author: atosato
 """
-
+import os
+os.chdir(r'F:\Albo_Cube\qtutils\measurements')
 from qcodes import Station, Monitor
 from qcodes import Instrument
 from importlib import reload
@@ -15,6 +16,7 @@ from qcodes.plots.pyqtgraph import QtPlot
 from qcodes.actions import BreakIf, Task
 import time
 from functools import partial
+import logging
 
 
 # initialize the station
@@ -31,19 +33,19 @@ station.load_lia3()
 station.load_keithley1()
 station.load_magnet()
 
+# station.magnet.log.setLevel(level=logging.DEBUG)
 #%% Configure virtual device
 # reload(dvcfg)
 dev_config = DevConfig()
 d = Instrument.find_instrument('d') 
 zero_ivvi = station.ivvi.set_dacs_zero
 station.lia3.frequency(17)
-station.keithley1.nplc(1)
 #%% 1D sweep
 
 Sweep.base_dir = r'F:\Albo_Cube'
 # Sweep.file_label = 'SQ21-72-1_LF1_S3_D2'/
 
-break_at_leakage = BreakIf(lambda: abs(d.I_leak())>15) #leakage in nA
+break_at_leakage = BreakIf(lambda: abs(d.I_leak())>10) #leakage in nA
 
 Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak])
 # Vcgsweep = Sweep(sweep_params=d.Vcg, plot_params=[d.G, d.R, d.I_AC, d.V_AC, d.I_leak])
@@ -66,10 +68,10 @@ Vg_field_2Dsweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rx
 
 #%% Run sweep
 
-Vgsweep.run([-3180,-3490,3], tasks=[[break_at_leakage]], cw=0)
-d.Vg(-3180)
-Vgsweep.run([-3180,-3490,3], tasks=[[break_at_leakage]], cw=0)
-d.Vg(-3180)
+Vgsweep.run([-3000,-3300,3], tasks=[[break_at_leakage]], cw=0)
+d.Vg(-3000)
+Vgsweep.run([-1000,-700,3], tasks=[[break_at_leakage]], cw=0)
+d.Vg(-700)
 
 # Vgsweep.run([d.Vg(),-3120,.5], task_list=[break_at_leakage], cw=0)
 
@@ -81,7 +83,7 @@ d.Vg(-3180)
 
 # timesweep.run([0,300,1], delays=[1])
 
-# Bsweep.run([-.01, 0, 0.002], cw=1) #in Tesla
+Bsweep.run([-0.1,0.1,0.050], cw=1) #in Tesla
 
 # d.field(0)
 # d.field(0)
@@ -92,9 +94,9 @@ d.Vg(-3180)
 
 #%% Run 2D sweeps
 # Vg_field_2Dsweep.run([[-2900,-3300,1.3],[9,-0.4,0.04]], delays=[.3,10], cw=1)
-Vg_field_2Dsweep.run([[-3180,-3490,.7],[-0.3,9,0.020]], delays=[0.05,10], cw=1)
+Vg_field_2Dsweep.run([[-3000,-3301.5,1.5],[-0.2,9,0.050]], delays=[0.05,10], cw=1)
 d.field(0)
-d.Vg(-3180)
+d.Vg(-1000)
 # Vcg_reps.run([[0,-1600,3],[0,5,1]], delays=[.3,3], cw=1)
 # VDC_Vcg_sweep.run([[-1200,1200,12],[-900,-1500,10]], delays=[.3,3], cw=1)
 
