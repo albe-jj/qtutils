@@ -43,7 +43,7 @@ def two_axis(figsize=[13,4]):
     return ax1, ax2
 
 
-def to_clipboard(fig=None, format='png'):
+def to_clipboard(fig=None, format='jpeg'):
     def _send_to_clipboard(clip_type, data):
         win32clipboard.OpenClipboard()
         win32clipboard.EmptyClipboard()

@@ -5,7 +5,7 @@ Created on Fri Mar 12 16:42:16 2021
 @author: atosato
 """
 from qcodes.plots.pyqtgraph import QtPlot
-from sweep_seq import sweep_seq
+from qtutils.measurements.sweep_seq import sweep_seq
 import weakref
 from PyQt5.QtCore import Qt
 import pyqtgraph as pg

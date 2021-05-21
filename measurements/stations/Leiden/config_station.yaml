@@ -1,6 +1,7 @@
-instruments: 
+# note that instrument name should be the same of init name,
+# to avoid "another instrument has name ..." error
 
- 
+instruments: 
 
   ivvi:
     type: qcodes_contrib_drivers.drivers.QuTech.IVVI.IVVI
@@ -69,6 +70,7 @@ instruments:
     enable_forced_reconnect: true
     address: ASRL21::INSTR
 
+
   temp_control: 
     type: stations.Leiden.drivers.DRTempControl.DRTempControl
     enable_forced_reconnect: true
@@ -91,6 +93,18 @@ instruments:
     init:
       name: 'cryomux'
       U2_instr_name: 'U2'
+
+  S4g:
+    type: drivers.S4g_qc.S4g
+    enable_forced_reconnect: true
+    init:
+      name: S4g
+      module: 5
+      inter_delay: 0.01
+      dac_step: 20e-6
+      reset_currents: False
+      mA: False
+      number_dacs: 4
 
 
  ############################

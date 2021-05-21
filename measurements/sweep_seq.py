@@ -15,7 +15,7 @@ import numpy as np
 import time
 from functools import partial
 from time import sleep
-from window_mngr import bring_up_window, position_window, resize_window
+from qtutils.measurements.window_mngr import bring_up_window, position_window, resize_window
 import os
 from qcodes.plots.pyqtgraph import QtPlot
 #%%
