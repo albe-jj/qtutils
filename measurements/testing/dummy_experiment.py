@@ -8,16 +8,17 @@ Created on Fri Mar 12 12:51:19 2021
 from qcodes import Station, Monitor
 from qcodes import Instrument
 from dummy_dev_config import DevConfig
-from measurement_sweeps import Sweep
-from sweep_seq import sweep_seq
+from qtutils.measurements.measurement_sweeps import Sweep
+from qtutils.measurements.sweep_seq import sweep_seq
 from qcodes.plots.pyqtgraph import QtPlot
 from qcodes.actions import BreakIf, Task
 from qcodes.instrument.parameter import CombinedParameter
+from qcodes.loops import Loop
 
 # Instrument.close_all()
 
 # initialize the station
-station_config_path = r'M:\tnw\ns\qt\ScappucciLab\0_Group members\Alberto\Scripts\Measurement script\stations\dummy\config_dummy_station.yaml'
+station_config_path = r'M:\tnw\ns\qt\ScappucciLab\0_Group members\Alberto\Scripts\qtutils\measurements\stations\dummy\config_dummy_station.yaml'
 if Station.default is None:
     station = Station(config_file=station_config_path)
 else: station = Station.default
@@ -46,7 +47,7 @@ pltitem = pltw.plot() #Create new plotitem or trace
 def update_plot():
       pltitem.setData(x=data.arrays['d_V_AC_bias_set'],y=data.arrays['d_I_AC'], clear=False)
      # print(data.arrays['d_I_AC'])
-plt_update_tsk = Task(bla)
+plt_update_tsk = Task(update_plot)
 
 loop = Loop(d.V_AC_bias.sweep(1,10,num=10), delay=0).each(plt_update_tsk, d.I_AC)
 
@@ -56,10 +57,11 @@ data = loop.run()
 # plt.plot(x=data.arrays['d_V_AC_bias_set'],y=data.arrays['d_I_AC'], clear=False)
 
 #%% 1D sweep
-# break_at_leakage = BreakIf(lambda: d.I_AC()>1)
-# VACsweep = Sweep(sweep_params=d.V_AC_bias, plot_params=[d.I_AC, d.V_AC, d.R])
-# # d.V_AC_bias(0)
-# VACsweep.run([0,10,1], task_list=[break_at_leakage], cw=0)
+break_at_leakage = BreakIf(lambda: d.I_AC()>1)
+Sweep.base_dir=None
+VACsweep = Sweep(sweep_params=d.V_AC_bias, plot_params=[d.I_AC, d.V_AC, d.R])
+# d.V_AC_bias(0)
+VACsweep.run([0,10,1], cw=0)
 
 
 #%%
@@ -70,7 +72,10 @@ data = loop.run()
 # V_AC2Dsweep = Sweep(sweep_params=[d.V_AC_bias, d.Vg], plot_params=[d.I_AC, d.V_AC, d.R])
 # d.V_AC_bias(0)
 # V_AC2Dsweep.run([[0,100,1],[0,5,1]], cw=1)
+VAC_Vg_2Dsweep_return = Sweep(sweep_params=[d.V_AC_bias, d.Vg], plot_params=[d.I_AC, d.V_AC, d.R])
 
+VAC_vals = [0,10,1]
+VAC_Vg_2Dsweep_return.run([VAC_vals, [0,100,10]], tasks=[[],[Loop(d.Vg.sweep(0,10,num=10)).each(d.R)]])
 #%%
 # sweep_seq(
 #             outputs = [d.I_AC],
@@ -80,3 +85,13 @@ data = loop.run()
 #             delay=0
 #         )
 # QtPlot(figsize=[1000,400])
+
+
+#%% Developement
+loop1 = Loop(d.V_AC_bias.sweep(1,100,num=10), delay=0).each(d.R)
+loop2 = Loop(d.V_AC_bias.sweep(1,100,num=10), delay=0).each(d.R)
+loop = Loop(d.Vg.sweep(1,10,num=10), delay=0).each(loop1,loop2)
+loop.run()
+#%%
+loop = Loop(d.Vg.sweep(1,100,num=10)).each(Loop(d.Vg.sweep(0,10,num=10)).each(d.R), d.I_AC)
+loop.run()
