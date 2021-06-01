@@ -5,14 +5,32 @@ import numpy as np
 from collections import deque
 import time
 import logging
+import datetime
+import os
 
 '''
 TODO
 - empty buffer at some point 
 '''
+today = datetime.datetime.today().strftime("%Y-%m-%d")
 
-log = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.setLevel(level=logging.DEBUG)
+logging.basicConfig(filename='F:\\Albo_Cube\\APS100_log\\{}-APS100.logger'.format(today), 
+    encoding='utf-8', level=logging.DEBUG,
+    format='%(asctime)s %(message)s')
+# fh = logging.FileHandler('F:\\Albo_Cube\\APS100_log\\{}-APS100.log'.format(today))
+# fh.setLevel(logging.DEBUG)
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.DEBUG)
 
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# ch.setFormatter(formatter)
+# fh.setFormatter(formatter)
+
+# logger.addHandler(ch)
+# logger.addHandler(fh)
 
 class APS100(VisaInstrument):
     '''
@@ -194,7 +212,7 @@ class APS100(VisaInstrument):
     def _set_llim(self, llim):
         '''llim: sweep lower limit in Tesla'''
         self.ask('llim {:.4f}'.format(llim*10))
-        log.debug(f'llim set to {llim}')
+        logger.debug(f'llim set to {llim}')
 
     def _get_ulim(self):
         r = self.query('ulim?')
@@ -205,7 +223,7 @@ class APS100(VisaInstrument):
     def _set_ulim(self, ulim):
         '''ulim: sweep upper limit in Tesla'''
         self.ask('ulim {:.4f}'.format(ulim*10))
-        log.debug(f'ulim set to {ulim}')
+        logger.debug(f'ulim set to {ulim}')
 
     def _get_sweep(self):
         r = self.query('sweep?')
@@ -214,7 +232,7 @@ class APS100(VisaInstrument):
     def _set_sweep(self, sweep):
         '''UP, DOWN, PAUSE, or ZERO'''
         self.ask('sweep {}'.format(sweep))
-        log.debug(f'sweep set to {sweep}')
+        logger.debug(f'sweep set to {sweep}')
 
     def _get_units(self):
         r = self.query('units?')
@@ -257,6 +275,7 @@ class APS100(VisaInstrument):
             self.llim(target)
             sweep_dir = 'down'
         else:
+            logger.warning('already at field')
             return
 
         if self._can_start_ramping():
@@ -270,11 +289,19 @@ class APS100(VisaInstrument):
                 if atol==0: d = deque(maxlen=20)
                 else: d = deque(maxlen=1)
                 d.append(self.field())
-
+                logger.info('entering wait loop')
+                i = 0
                 while not at_target:
                     d.append(self.field())
                     at_target = np.isclose(np.mean(d),target, atol=atol) 
                     time.sleep(.1)
+                    i+=1
+                    if i==20:
+                        logger.info(f'at target: {at_target}')
+                        logger.info(f'field: {self.field()}')
+                        logger.info(f'deque: {d}')
+                        i=0
+
                 self.sweep('pause')
         return
 
@@ -294,25 +321,25 @@ class APS100(VisaInstrument):
             cond.append('True')
         else: 
             cond.append('False')
-            log.error('magnet units are set to {}. Pls set them to "kG"'.format(self.units()))
+            logger.error('magnet units are set to {}. Pls set them to "kG"'.format(self.units()))
 
         if heater=='on':
             cond.append(True)
         else:
-            log.error('persistent heater is off. Pls turn it on')
+            logger.error('persistent heater is off. Pls turn it on')
 
         if int(bts[-3])==0:
             cond.append(True)
         else:
-            log.error('quench detected')
+            logger.error('quench detected')
 
         if sweep != 'Pause':
-            log.warning('Sweep is in state: {}'.format(sweep))
+            logger.warning('Sweep is in state: {}'.format(sweep))
 
         if abs(ulim)<=9 and abs(llim)<=9:
             cond.append(True)
         else:
-            log.error(f'limits are beyond specs. llim={llim}, ulim={ulim}')
+            logger.error(f'limits are beyond specs. llim={llim}, ulim={ulim}')
 
         can_start = all(cond)
 
