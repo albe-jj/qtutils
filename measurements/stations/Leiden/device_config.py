@@ -8,6 +8,7 @@ from qtutils.measurements.virtual_instrument import VirtualInstrument
 from qcodes import Instrument
 import numpy as np
 from scipy import constants
+from qtutils.measurements.stations.Leiden.drivers.RuO2_temp_probe import RuO2_2k_R2Temp
 
 ech = constants.e
 h = constants.h
@@ -25,10 +26,13 @@ class DevConfig:
     Vmeasure_gain_DC = 1e3 * 1 #V/V
 
     Vsource_gain = 1e-3 #V/V
-    Isource_gain = 1e-6 #A/V
+    Isource_gain = 0.1e-6 #A/V
 
     Istill_gain = 20e-3 #A/V
     Imc_gain = 20e-3 #A/V
+
+    I_temp_gain = 100e6 #V/A
+    V_temp_gain = 10e3 #V/V
 
     dev_params =  { 
         'Vg': {'instrument': 'ivvi','parameter': 'dac4', 
@@ -39,7 +43,7 @@ class DevConfig:
         #        'step': 20, 'inter_delay': .1, 'unit':'mV', 'scale': 1/Vcg_gain},
         # 'field': {'instrument': 'magnet', 'parameter': 'field',
         #           'scale':1e-3, 'unit':'mT'},
-        'field': {'instrument':  'S4g','parameter': 'dac1', 
+        'field': {'instrument':  'Paral_S4g','parameter': 'current', 
                 'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 5.6 mT per dac (50mA) 
         'V_AC_bias': {'instrument': 'lia1','parameter': 'amplitude',  
                 'step': 1, 'inter_delay': 0, 'scale':1/Vsource_gain*1e2*1e-6, 'unit':'uV'}, #1e2 -> isoiin is diveded by 100
@@ -62,7 +66,6 @@ class DevConfig:
         #            'adc1', 'scale': 1e6*1e-9, 'unit':'nA'}, #nA
         'I_leak': {'instrument': 'keithley3', 'parameter':  
                    'voltage_dc', 'scale': 1e6*1e-9, 'unit':'nA'}, #nA
-        'temp': {'instrument': 'temp_control', 'parameter': 'mc_temp'}, 
         
         
         # LIA Y componenets
@@ -78,8 +81,17 @@ class DevConfig:
         'I_DC_still': {'instrument': 'ivvi','parameter': 'dac16', 
                       'step': 100, 'inter_delay': .05, 'scale': 1/(Imc_gain*1e6)*1e3, 'unit': 'uA'}, #1e3 -> DAC is in mV
 
-        'VAC_therm': {'instrument': 'lia3','parameter': 'amplitude',  
+        # 'temp': {'instrument': 'temp_control', 'parameter': 'mc_temp'}, # picowatt temp control
+
+
+        'VAC_bias_therm': {'instrument': 'lia3','parameter': 'amplitude',  
                 'step': 1, 'inter_delay': 0, 'scale':1/100e-6*1e-6, 'unit':'uV'}, #1e2 -> isoiin is diveded by 100
+        'I_AC_therm': {'instrument': 'lia4','parameter': 'X', 
+              'unit':'A', 'scale': I_temp_gain},
+        'V_AC_therm': {'instrument': 'lia3','parameter': 'X', 
+              'unit':'A', 'scale': V_temp_gain},
+
+
         }
 
 
@@ -94,6 +106,7 @@ class DevConfig:
         self.d.add_parameter('R',get_cmd=self.calc_R, unit='Ohm')
         self.d.add_parameter('Rsq',get_cmd=self.calc_Rsq, unit='Ohm')
         # self.d.add_parameter('Rxy',get_cmd=self.calc_Rxy, unit='Ohm')
+        self.d.add_parameter('temp', get_cmd=self.calc_temp, unit='mK')
 
         self.d.add_parameter('reps', inter_delay=0, set_cmd=None)
         
@@ -123,4 +136,13 @@ class DevConfig:
         try: Rxy = self.d.Vxy_AC()/self.d.I_AC()
         except: Rxy = np.nan
         return Rxy
+
+    def calc_temp(self):
+        try: temp = RuO2_2k_R2Temp(self.d.V_AC_therm()/self.d.I_AC_therm())
+        except: temp = np.nan
+        return temp
+
+
+
+
     

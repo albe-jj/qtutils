@@ -5,7 +5,7 @@ Created on Fri Mar 12 16:42:16 2021
 @author: atosato
 """
 from qcodes.plots.pyqtgraph import QtPlot
-from qtutils.measurements.sweep_seq import sweep_seq
+from .sweep_seq import sweep_seq
 import weakref
 from PyQt5.QtCore import Qt
 import pyqtgraph as pg
@@ -14,12 +14,11 @@ import os
 
 class Sweep:
     _pltwindows = {}
-    # base_dir = None
     file_label = None
-    def __init__(self, sweep_params, plot_params, location=None):
-        if Sweep.base_dir:
-            os.chdir(Sweep.base_dir) #directory where data are saved
-            # print('base_dir ', Sweep.base_dir)
+    loc = None
+
+    def __init__(self, sweep_params, plot_params):
+
         if not isinstance(sweep_params, list):
             sweep_params = [sweep_params]
         self.d = sweep_params[0].root_instrument
@@ -29,7 +28,8 @@ class Sweep:
         self.settable_params = self.settable_params()
         # self.location = Sweep.location
 
-    def run(self, sweep_ranges, cw=True, delays=0, tasks=None):
+
+    def run(self, sweep_ranges, cw=True, delays=0, tasks=None, use_threads=False):
         if not isinstance(sweep_ranges[0], list):
             sweep_ranges = [sweep_ranges]
         figsize = [350*len(self.plot_params), 250]
@@ -40,14 +40,15 @@ class Sweep:
         # if len(self.save_params)>1:
         #     self.add_linecut_viewer()
         # loc, lbl  = self.get_loc_label()
+        
         sweep_seq(
-            # base_dir = Sweep.location,
             # file_label = lbl,
             outputs = self.save_params,
             sweep_param_ranges = sweep_param_ranges,       
             plot_param_ls = self.plot_params,
             clearwindow = cw, liveplotwindow = self.plot_window,
-            delays=delays,  tasks=tasks
+            delays=delays,  tasks=tasks, use_threads=use_threads,
+            location=self.loc
         )
         
         

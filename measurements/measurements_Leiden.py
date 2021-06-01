@@ -4,41 +4,46 @@ Created on Fri Mar 12 12:51:19 2021
 
 @author: atosato
 """
-
+import os
+os.chdir(r'D:\Albo_LF')
 from qcodes import Station, Monitor, Parameter
 from qcodes import Instrument
 from importlib import reload
 from qtutils.measurements.stations.Leiden.device_config import DevConfig
 from qtutils.measurements.measurement_sweeps import Sweep
+from qtutils.measurements.param_viewer.param_viewer_GUI_main import param_viewer
 from qcodes.plots.pyqtgraph import QtPlot
 from qcodes.actions import BreakIf, Task
 import time
 from pyvisa import ResourceManager
-import os
-os.chdir(r'D:\Albo_LF\qtutils\measurements')
+# os.chdir(r'D:\Albo_LF\qtutils\measurements')
 
 rm = ResourceManager()
 
 
 # initialize the station
-station_config_path = r'M:\tnw\ns\qt\ScappucciLab\0_Group members\Alberto\Scripts\Measurement script\stations\Leiden\config_station.yaml'
+station_config_path = r'D:\Albo_LF\qtutils\measurements\stations\Leiden\config_station.yaml'
 if Station.default is None:
     station = Station(config_file=station_config_path)
 else: 
     station = Station.default
-    station.spi.spi_rack.close()
+    rstation.spi.spi_rack.close()
+    # pw.close()
 
 station.load_ivvi()
 station.load_spi()
 station.load_lia1()
 station.load_lia2()
 station.load_lia3()
+station.load_lia4()
 station.load_keithley1()
 station.load_keithley2()
 station.load_keithley3()
-# station.load_magnet()
-station.load_temp_control()
+# station.load_magnet() #cryogenics MPS
+# station.load_temp_control()
+station.load_frontpanel()
 station.load_S4g(spi_rack=station.spi.spi_rack)
+station.load_Paral_S4g(num_dacs=4, S4g=station.S4g)
 station.load_U2(spi_rack=station.spi.spi_rack)
 station.load_cryomux()
 # station.magnet.unit('TESLA') #add this in yaml config file
@@ -46,9 +51,7 @@ station.load_cryomux()
 station.U2.span1('4v bi')#?!  
 station.cryomux.set_voltages_U2_minimum()
 
-Sweep.base_dir = r'D:\Albo_LF'
-
-
+# Sweep.loc = 'D:\Albo_LF\data'
 
 #%% Configure virtual device
 # reload(dvcfg)
@@ -62,12 +65,18 @@ station.keithley2.integrationtime(.2)
 keithley_He = rm.open_resource('GPIB::26')
 get_He_level = lambda: round(float(keithley_He.read().strip()[4:])/2*1e3-4)
 # d.add_parameter('He', get_cmd=get_He_level)
+# pw = param_viewer(station=station, gates_object=d)
+#%% Tasks
+break_at_leakage = BreakIf(lambda: abs(d.I_leak())>2) #leakage in nA
+
+def reduce_still_heater():
+    if 
+
+
 #%% 1D sweep
 
 # Sweep.location = None #r'D:\LeidenMCK50_fridge\Scripts\Albo\data'
 # Sweep.file_label = 'SQ21-72-1_LF1_S3_D2'
-
-break_at_leakage = BreakIf(lambda: abs(d.I_leak())>2) #leakage in nA
 
 Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.R, d.I_AC, d.V_AC, d.I_leak])
 Vcgsweep = Sweep(sweep_params=d.Vcg, plot_params=[d.G, d.R, d.I_AC, d.V_AC, d.I_leak])
@@ -76,7 +85,9 @@ IDCsweep = Sweep(sweep_params=d.I_DC_bias, plot_params=[d.R, d.I_AC, d.V_AC, d.V
 
 Bsweep = Sweep(sweep_params=d.field, plot_params=[d.R, d.I_AC, d.V_AC])
 # timesweep = Sweep(sweep_params=d.repetitions, plot_params=[d.Rsq, d.I_AC, d.V_AC])
-# timesweep = Sweep(sweep_params=d.reps, plot_params=[d.He])
+timesweep = Sweep(sweep_params=d.reps, plot_params=[d.temp, d.V_AC_therm, d.I_AC_therm])
+
+temp_sweep = Sweep(sweep_params=d.I_DC_mc, plot_params=[d.temp, d.R, d.V_AC])
 
 #%% 2D sweep
 Vcg_reps = Sweep(sweep_params=[d.Vcg, d.reps], plot_params=[d.G, d.I_AC, d.V_AC])
@@ -92,21 +103,22 @@ VDC_Vg_sweep = Sweep(sweep_params=[d.V_DC_bias, d.Vg], plot_params=[d.G, d.I_AC,
 # Vg_field_2Dsweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC])
 
 #%% Run sweep
-Vgsweep.run([d.Vg(),-100,10], tasks=[[break_at_leakage]], cw=0)
+Vgsweep.run([d.Vg(),-2500,10], tasks=[[break_at_leakage]], cw=0)
 # Vcgsweep.run([d.Vcg(),-870,3], delays=[0], task_list=[break_at_leakage], cw=1)
 # Vcgsweep.run([d.Vcg(),-500,5], delays=[0], task_list=[break_at_leakage], cw=0)
 VDCsweep.run([-200,200,1], cw=5)
-# IDCsweep.run([-150,150, .5], cw=1)
+IDCsweep.run([-150,150, .5], cw=1)
 
 
-# timesweep.run([0,3600*15,1], delays=[10])
+timesweep.run([0,3600*15,1], delays=[1])
 
-Bsweep.run([5.66,-5.66,.1], cw=0)
-
+Bsweep.run([-8,1,.01], delays=[.5], cw=1)
+Bsweep.run([1,-8,.01], delays=[.5], cw=0)
 # d.field(0)
 # Vcgsweep.run([d.Vcg(),500,5], task_list=[break_at_leakage], cw=1)
 # Vcgsweep.run([d.Vcg(),-4500,15], task_list=[break_at_leakage], cw=0)
 
+temp_sweep.run([2500,3000,10], delays=[15], cw=False)
 
 
 #%% Run 2D sweeps
@@ -118,4 +130,16 @@ VDC_Vg_sweep.run([[-100,120,3], [-2135,-2220,5]], delays=[.1,3])
 
 # VDC_field_sweep.run([[-300,300,3],[0,615,20]], delays=[0,5], cw=1)
 
+#%% Developement section
+from qtutils.measurements.stations.Leiden.drivers.RuO2_temp_probe import get_temp_RuO2, RuO2_2k_R2Temp
+Rx = calc_Rx(V_bias=d.VAC_bias_therm()*1e-6, I=d.I_AC_therm(), I_gain=1e6)
+print(RuO2_2k_R2Temp(Rx))
+
+
 #%%
+pc = LVApp(r"DRFrontPanel.Application",r"DR FrontPanel.exe\FP.vi")
+
+
+
+
+

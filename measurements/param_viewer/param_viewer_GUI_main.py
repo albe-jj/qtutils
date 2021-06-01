@@ -17,7 +17,7 @@ class param_data_obj:
 
 class param_viewer(QtWidgets.QMainWindow, Ui_MainWindow):
     """docstring for virt_gate_matrix_GUI"""
-    def __init__(self, station : Station, gates_object: Optional[object] = None):
+    def __init__(self, station : Station, gates_object: Optional[object] = None, param_ls=None):
         if type(station) is not Station:
             raise Exception('Syntax changed, to support RF_settings now supply station')
         self.real_gates = list()
@@ -51,10 +51,14 @@ class param_viewer(QtWidgets.QMainWindow, Ui_MainWindow):
         #         self._add_RFset(param)
 
         # add real gates
-        for gate_name in self.gates_object.parameters.keys():
-            param = getattr(self.gates_object, gate_name)
-            if param.name in  ['Vg', 'Vcg', 'V_AC_bias', 'V_DC_bias']: #
-                self._add_gate(param, False)
+
+        if not param_ls:
+            param_ls = list(self.gates_object.parameters)
+            param_ls = [p_name for p_name in param_ls if p_name not in ['IDN', 'reps', 'seat']] #remove IDN
+
+        for param_name in param_ls:
+            param = getattr(self.gates_object, param_name)
+            self._add_gate(param, False)
 
         # add virtual gates
         # for virt_gate_set in self.gates_object.hardware.virtual_gates:
@@ -166,8 +170,8 @@ class param_viewer(QtWidgets.QMainWindow, Ui_MainWindow):
         voltage_input.setMinimumSize(QtCore.QSize(100, 0))
 
         # TODO collect boundaries out of the harware
-        voltage_input.setRange(-8000,8000.0)
-        voltage_input.valueChanged.connect(partial(self._set_gate, parameter, voltage_input.value))
+        voltage_input.setRange(-20e3,20e3)
+        # voltage_input.valueChanged.connect(partial(self._set_gate, parameter, voltage_input.value))
         voltage_input.setKeyboardTracking(False)
         layout.addWidget(voltage_input, i, 1, 1, 1)
 
