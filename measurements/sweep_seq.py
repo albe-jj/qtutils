@@ -108,9 +108,10 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
               location=None, delays= None, file_label='', 
               liveplotting = True, liveplotwindow=None, settle_time=0, 
               maxplots=6, randomize = None, verbose = 1, plt_update_dim = None, clearwindow = True,
-              meas_Rn=False, ar_lia2=False, VAC_range=False, tasks=None,
-              use_threads=False, base_dir=None,
+              tasks=None, inner_loop_with_return=False,
+              use_threads=False, 
               **kwargs):
+
     """
     Args:
         outputs: arrays of measurement functions
@@ -126,11 +127,6 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
 
     """
     
-    # global station
-    #creates file to measure Rn
-    if meas_Rn:
-        global file_name
-        file_path = create_Rn_file()
     
     # Being flexible on the inputs, bit ugly
     if isinstance(sequence, list):
@@ -208,9 +204,6 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
                 loop = Loop(sweepvalues, delay=delays[i]).each(*outputs)
     
 
-    if base_dir:
-        os.chdir(base_dir)
-        print(os.getcwd())
     # If no loop was generated, measurement needs to be taken (using dummy loop)    
     if not loop:
         measure = Measure(*outputs)      
@@ -227,6 +220,16 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
                 add_liveplot(liveplotwindow, y_plt, maxplots, clearwindow)
     # 
     else:
+
+        #loop from outer to inner loop to add tasks
+        if tasks is None:
+            tasks = [[]] * dim_param_sweep
+        loopi = loop
+        for i in range(dim_param_sweep): 
+            dim_i = dim_param_sweep -1 - i
+            loopi.actions.extend(tasks[dim_i])
+            loopi = loopi.actions[0]
+
         data = loop.get_data_set(
             location=location,
             loc_record={
@@ -240,7 +243,6 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
             gui_update = Task(pg.mkQApp().processEvents)
             
 
-        
         update_loop = loop
         for k in range(dim_total-plt_update_dim):
             update_loop = update_loop.actions[0]
@@ -248,15 +250,6 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
         update_loop.progress_interval = 5
         
         
-        #loop from outer to inner loop to add tasks
-        if tasks is None:
-            tasks = [[]] * dim_param_sweep
-        loopi = loop
-        for i in range(dim_param_sweep): 
-            dim_i = dim_param_sweep -1 - i
-            loopi.actions.extend(tasks[dim_i])
-            loopi = loopi.actions[0]
-
         data = loop.run(use_threads)
         
     # data.add_metadata({'gates': station.gates.allvalues()})

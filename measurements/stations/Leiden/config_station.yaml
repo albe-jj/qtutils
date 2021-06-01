@@ -43,6 +43,12 @@ instruments:
     init:
       name: lia3
 
+  lia4:
+    type: qcodes.instrument_drivers.stanford_research.SR830.SR830
+    enable_forced_reconnect: true
+    address: GPIB0::12::INSTR
+    init:
+      name: lia4
   
   keithley1: 
     type: qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700
@@ -75,8 +81,14 @@ instruments:
     type: stations.Leiden.drivers.DRTempControl.DRTempControl
     enable_forced_reconnect: true
 
+  front_panel: 
+    type: qtutils.measurements.stations.Leiden.drivers.front_panel_qc.FrontPanel
+    enable_forced_reconnect: true
+    init:
+      name: front_panel
+
   U2:
-    type: stations.Leiden.drivers.U2QC.U2_moduleQC
+    type: qtutils.measurements.stations.Leiden.drivers.U2QC.U2_moduleQC
     enable_forced_reconnect: true
     init:
       name: 'U2'
@@ -88,24 +100,29 @@ instruments:
       number_dacs: 8
 
   cryomux:
-    type: stations.Leiden.drivers.cryomux.CryogenicMultiplexer
+    type: qtutils.measurements.stations.Leiden.drivers.cryomux.CryogenicMultiplexer
     enable_forced_reconnect: true
     init:
       name: 'cryomux'
       U2_instr_name: 'U2'
 
   S4g:
-    type: drivers.S4g_qc.S4g
+    type: qtutils.measurements.drivers.S4g_qc.S4g
     enable_forced_reconnect: true
     init:
       name: S4g
       module: 5
       inter_delay: 0.01
-      dac_step: 20e-6
+      dac_step: 50e-6
       reset_currents: False
       mA: False
       number_dacs: 4
 
+  Paral_S4g:
+    type: qtutils.measurements.drivers.paral_S4g.Paral_S4g
+    enable_forced_reconnect: true
+    init:
+      name: Paral_S4g
 
  ############################
   mock_dac:
