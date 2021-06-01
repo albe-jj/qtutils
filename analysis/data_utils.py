@@ -48,67 +48,74 @@ class DataImporter:
 		if self.network_data_folder and (not file_location.is_dir() or refresh):
 			network_data_folder=self.network_data_folder/'data'/file_location.parent.name
 			upload_to_Mdrive(file_location, network_data_folder)
-		file_path = list(file_location.glob('*.dat'))[0]
+		file_path_ls = list(file_location.glob('*.dat'))
 
-		# import as qcodes dataset
-		dataset = load_data(str(file_location))
-		
-		# parse column names
-		with open(file_path, 'r') as f:
-			line = [f.readline().replace('#', '').replace('"', '') for i in range(3)]
-		col_names = line[1].split()
-		col_long_names = line[0].split()
-		nr_set_vars = len(line[2].split())
-		name_set_vals = col_names[:nr_set_vars]
+		ds_ls = []
+		for file_path in file_path_ls:
 
-		# remove cols that you both set and measure from measured values
-		usecol_idx = list(range(nr_set_vars)) + [idx for idx,name in enumerate(col_names) if name not in name_set_vals]
-		usecol_names = [col_names[i] for i in usecol_idx]
-		usecol_long_names = [col_long_names[i] for i in usecol_idx]
-		
-		
-		# create dataframe
-		df = pd.read_csv(file_path, sep='\t', skiprows=[0,1,2], usecols=usecol_idx, names=usecol_names)
-
-		# remove rows with nans in set_params
-		df.dropna(axis=0, subset=name_set_vals, inplace=True)
-
-		#set index
-		df.set_index(name_set_vals, inplace=True)
-
-		#remove parameters that are both set and saved, to avoid duplicate errors
-		duplicates = list(set(name_set_vals) & set(df.columns))
-		df.drop(columns=duplicates, inplace=True)
-
-
-
-
-		
-		# create DataSet and add metadata
-		ds = df.to_xarray()
-		for idx, key in enumerate(usecol_names):
-			ds[key].attrs = dataset.metadata['arrays'][usecol_long_names[idx]]
-			ds[key].attrs['units'] = dataset.metadata['arrays'][usecol_long_names[idx]]['unit']
+			# import as qcodes dataset
+			dataset = load_data(str(file_location))
 			
-		# rename labels (optional)
-		ds = ds.rename(name_dict=names_dict)
-		
-		# add VDC as a coordinate if exist
-		if 'V_DC' in ds:
-			print('V_AC max: {:.1f} uV'.format(ds.V_AC.max().values*1e6))
-			ds = ds.assign_coords(VDC=ds.V_DC*1e6)
-			ds.VDC.attrs['units'] = 'uV'
+			# parse column names
+			with open(file_path, 'r') as f:
+				line = [f.readline().replace('#', '').replace('"', '') for i in range(3)]
+			col_names = line[1].split()
+			col_long_names = line[0].split()
+			nr_set_vars = len(line[2].split())
+			name_set_vals = col_names[:nr_set_vars]
 
-		if 'G' in ds:
-			ds.G.attrs['units'] = '2$e^2$/h'
-		
-		# add coords
-		# for coord in coords:
-		
-		# add columns
-	#     ds['R'] = ds.V_AC/ds.I_AC
-	#     ds['G'] = ds.I_AC/ds.V_AC*h/(2*ech**2)
-		return ds
+			# remove cols that you both set and measure from measured values
+			usecol_idx = list(range(nr_set_vars)) + [idx for idx,name in enumerate(col_names) if name not in name_set_vals]
+			usecol_names = [col_names[i] for i in usecol_idx]
+			usecol_long_names = [col_long_names[i] for i in usecol_idx]
+			
+			
+			# create dataframe
+			df = pd.read_csv(file_path, sep='\t', skiprows=[0,1,2], usecols=usecol_idx, names=usecol_names)
+
+			# remove rows with nans in set_params
+			df.dropna(axis=0, subset=name_set_vals, inplace=True)
+
+			#set index
+			df.set_index(name_set_vals, inplace=True)
+
+			#remove parameters that are both set and saved, to avoid duplicate errors
+			duplicates = list(set(name_set_vals) & set(df.columns))
+			df.drop(columns=duplicates, inplace=True)
+
+
+
+
+			
+			# create DataSet and add metadata
+			ds = df.to_xarray()
+			for idx, key in enumerate(usecol_names):
+				ds[key].attrs = dataset.metadata['arrays'][usecol_long_names[idx]]
+				ds[key].attrs['units'] = dataset.metadata['arrays'][usecol_long_names[idx]]['unit']
+				
+			# rename labels (optional)
+			ds = ds.rename(name_dict=names_dict)
+			
+			# add VDC as a coordinate if exist
+			if 'V_DC' in ds:
+				print('V_AC max: {:.1f} uV'.format(ds.V_AC.max().values*1e6))
+				ds = ds.assign_coords(VDC=ds.V_DC*1e6)
+				ds.VDC.attrs['units'] = 'uV'
+
+			if 'G' in ds:
+				ds.G.attrs['units'] = '2$e^2$/h'
+			
+			# add coords
+			# for coord in coords:
+			
+			# add columns
+		#     ds['R'] = ds.V_AC/ds.I_AC
+		#     ds['G'] = ds.I_AC/ds.V_AC*h/(2*ech**2)
+			ds_ls.append(ds)
+		if len(ds_ls)>1:
+			return ds_ls
+		else:
+			return ds_ls[0]
 
 
 	def plot_VDC_map(self, location, stepped_var, offset=0, names_dict={}, roll_window=1):
