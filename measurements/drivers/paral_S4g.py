@@ -2,7 +2,7 @@
 # @Author: TUD278249
 # @Date:   2021-05-28 17:37:04
 # @Last Modified by:   TUD278249
-# @Last Modified time: 2021-05-31 10:00:55
+# @Last Modified time: 2021-06-02 08:58:52
 
 
 from qcodes.utils.validators import Numbers
@@ -24,6 +24,7 @@ class Paral_S4g(Instrument):
         self.S4g = S4g
         self.num_dacs = num_dacs
         self.max_val = .04999 #A 
+        self.max_field = self.max_val * self.num_dacs * 0.113375 #T
         
         super().__init__(name)
         validator = Numbers(-self.max_val*num_dacs, self.max_val*num_dacs)

@@ -16,17 +16,18 @@ kb = constants.k/constants.e * 1e6 #ueV/K
 G0 = h/(2*ech**2)
 
 class DevConfig:
-    Imeasure_gain_AC = 1 * 10e6 * 1#V/A 
-    Imeasure_gain_DC = 1 * 10e6 * 1#V/A
+    Imeasure_gain_AC = 1 * 1e6 * 1#V/A 
+    Imeasure_gain_DC = 1 * 1e6 * 1#V/A
     Vg_gain = 15 #V/V
     Vcg_gain = 5 #V/V
 
     # Vmeasure gains: M2b * srs preamp
     Vmeasure_gain_AC = 1e3 * 1  #V/V
+    Vxymeasure_gain_AC = 100 #V/V
     Vmeasure_gain_DC = 1e3 * 1 #V/V
 
     Vsource_gain = 1e-3 #V/V
-    Isource_gain = 0.1e-6 #A/V
+    Isource_gain = 1e-6 #A/V
 
     Istill_gain = 20e-3 #A/V
     Imc_gain = 20e-3 #A/V
@@ -41,16 +42,28 @@ class DevConfig:
                'step': 20, 'inter_delay': .1, 'unit':'mV', 'scale': 1/Vcg_gain},
         # 'Vcg2': {'instrument': 'ivvi','parameter': 'dac10', 
         #        'step': 20, 'inter_delay': .1, 'unit':'mV', 'scale': 1/Vcg_gain},
-        # 'field': {'instrument': 'magnet', 'parameter': 'field',
-        #           'scale':1e-3, 'unit':'mT'},
-        'field': {'instrument':  'Paral_S4g','parameter': 'current', 
-                'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 5.6 mT per dac (50mA) 
+
+        ### Magnet power supplies
+
+        # Cryogenics
+        'field': {'instrument': 'magnet', 'parameter': 'field',
+                  'scale':1e-3, 'unit':'mT'},
+
+        #SPI S4g 
+        # 'field': {'instrument':  'Paral_S4g','parameter': 'current', 
+        #         'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 5.6 mT per dac (50mA) 
+
+        #Keitheley sourcemeter 2614B
+        # 'field': {'instrument':  'sourcemeter','parameter': 'smua.curr', 
+        #         'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 1.5A -> 170 mT 
+
+
         'V_AC_bias': {'instrument': 'lia1','parameter': 'amplitude',  
                 'step': 1, 'inter_delay': 0, 'scale':1/Vsource_gain*1e2*1e-6, 'unit':'uV'}, #1e2 -> isoiin is diveded by 100
         'V_DC_bias': {'instrument': 'ivvi','parameter': 'dac5', 
                       'step': 100, 'inter_delay': .0, 'scale': -1/Vsource_gain*1e3*1e-6, 'unit': 'uV'},#1e3 -> DAC is in mV
         'I_DC_bias': {'instrument': 'ivvi','parameter': 'dac6', 
-                      'step': 100, 'inter_delay': .05, 'scale': 1/(Isource_gain*1e9)*1e3, 'unit': 'nA'},#1e3 -> DAC is in mV
+                      'step': 100, 'inter_delay': .05, 'scale': 1/(Isource_gain*1e6)*1e3, 'unit': 'uA'},#1e3 -> DAC is in mV
         'I_AC_bias': {'instrument': 'lia1','parameter': 'amplitude', 
                       'step': .1, 'inter_delay': .05, 'scale': 1/(Isource_gain*1e9)*100, 'unit': 'nA'},
         
@@ -60,6 +73,9 @@ class DevConfig:
                   'unit':'A', 'scale': Imeasure_gain_DC},
         'V_AC': {'instrument': 'lia1','parameter': 'X', 
                  'scale': Vmeasure_gain_AC}, 
+        'Vxy_AC': {'instrument': 'lia5','parameter': 'X', 
+                 'scale': Vxymeasure_gain_AC}, 
+
         'V_DC': {'instrument': 'keithley1','parameter': 'amplitude', 
                  'unit':'V', 'scale': Vmeasure_gain_DC}, 
         # 'I_leak_cg': {'instrument': 'd4', 'parameter':  
@@ -71,14 +87,16 @@ class DevConfig:
         # LIA Y componenets
         'V_AC_Y': {'instrument': 'lia1','parameter': 'Y', 
                  'scale': Vmeasure_gain_AC},
+        'Vxy_AC_Y': {'instrument': 'lia5','parameter': 'Y', 
+                 'scale': Vxymeasure_gain_AC},
         'I_AC_Y': {'instrument': 'lia2','parameter': 'Y', 
               'unit':'A', 'scale': Imeasure_gain_AC},
 
         'seat': {'instrument': 'cryomux','parameter': 'sample'}, #1e3 -> DAC is in mV
         
-        'I_DC_mc': {'instrument': 'ivvi','parameter': 'dac15', 
+        'mc_current': {'instrument': 'ivvi','parameter': 'dac15', 
                       'step': 100, 'inter_delay': .05, 'scale': 1/(Istill_gain*1e6)*1e3, 'unit': 'uA'}, #1e3 -> DAC is in mV
-        'I_DC_still': {'instrument': 'ivvi','parameter': 'dac16', 
+        'still_current': {'instrument': 'ivvi','parameter': 'dac16', 
                       'step': 100, 'inter_delay': .05, 'scale': 1/(Imc_gain*1e6)*1e3, 'unit': 'uA'}, #1e3 -> DAC is in mV
 
         # 'temp': {'instrument': 'temp_control', 'parameter': 'mc_temp'}, # picowatt temp control
@@ -105,7 +123,7 @@ class DevConfig:
         self.d.add_parameter('G', get_cmd=self.calc_G, unit='2e^2/h')
         self.d.add_parameter('R',get_cmd=self.calc_R, unit='Ohm')
         self.d.add_parameter('Rsq',get_cmd=self.calc_Rsq, unit='Ohm')
-        # self.d.add_parameter('Rxy',get_cmd=self.calc_Rxy, unit='Ohm')
+        self.d.add_parameter('Rxy',get_cmd=self.calc_Rxy, unit='Ohm')
         self.d.add_parameter('temp', get_cmd=self.calc_temp, unit='mK')
 
         self.d.add_parameter('reps', inter_delay=0, set_cmd=None)
