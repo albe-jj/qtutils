@@ -17,12 +17,12 @@ class Sweep:
     file_label = None
     loc = None
 
-    def __init__(self, sweep_params, plot_params):
+    def __init__(self, sweep_params, plot_params, no_save_params):
 
         if not isinstance(sweep_params, list):
             sweep_params = [sweep_params]
         self.d = sweep_params[0].root_instrument
-        self.save_params = self.get_device_params()
+        self.save_params = self.get_save_params(no_save_params)
         self.sweep_params = sweep_params
         self.plot_params = plot_params
         self.settable_params = self.settable_params()
@@ -51,7 +51,12 @@ class Sweep:
             location=self.loc
         )
         
-        
+    
+    def get_save_params(self, no_save_params):
+        dev_params = self.get_device_params()
+        save_params = [i for i in dev_params if i not in no_save_params]
+        return save_params
+
     def get_device_params(self)->list:
         params = self.d.parameters.copy()
         params.pop('IDN')

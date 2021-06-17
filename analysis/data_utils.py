@@ -37,9 +37,18 @@ class DataImporter:
 
 		if network_data_folder:
 			network_data_folder = Path(network_data_folder)
-			if not network_data_folder.is_dir():
-				print('could not find:\n', network_data_folder)
-		self.network_data_folder = Path(network_data_folder)
+			try:
+				if network_data_folder.is_dir():
+					self.network_data_folder = Path(network_data_folder)
+				else:
+					print('could not find:\n', network_data_folder)
+					self.network_data_folder = None
+			except WindowsError as e:
+				print(e)
+				self.network_data_folder=None
+				pass
+			
+		
 
 
 

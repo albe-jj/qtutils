@@ -66,6 +66,8 @@ station.U2.span1('4v bi')#?!
 station.cryomux.set_voltages_U2_minimum()
 
 # Sweep.loc = 'D:\Albo_LF\data'
+lia_int_time = .1
+[station[i] for i in ['lia1', 'lia2', 'lia3'] ]
 
 #%% Configure virtual device
 # reload(dvcfg)
@@ -79,8 +81,9 @@ station.keithley2.integrationtime(.2)
 keithley_He = rm.open_resource('GPIB::26')
 get_He_level = lambda: round(float(keithley_He.read().strip()[4:])/2*1e3-4)
 # d.add_parameter('He', get_cmd=get_He_level)
-pw = param_viewer(station=station, gates_object=d, 
-                  param_ls=['Vg', 'Vcg', 'V_DC_bias', 'field', 'I_DC_bias','still_current','mc_current', 'temp'])
+# param_ls=['Vg', 'Vcg', 'V_DC_bias', 'field', 'I_DC_bias','still_current','mc_current', 'temp']
+param_ls=['Vg', 'field']
+pw = param_viewer(station=station, gates_object=d, param_ls=param_ls)
 
 timee = ElapsedTimeParameter('time')
 timee.reset_clock()
@@ -90,7 +93,11 @@ break_at_leakage = BreakIf(lambda: abs(d.I_leak())>2) #leakage in nA
 #autorange lia
 autorange_V_AC = Task(partial(lia_utils.autorange_lia, station.lia1))
 autorange_I_AC = Task(partial(lia_utils.autorange_lia, station.lia2))
+zero_gate_wait = Task()
 
+def zero_Vg():
+    d.Vg(0)
+    time.sleep(3)
     
     
 
@@ -107,6 +114,12 @@ def zero_all():
     d.I_DC_bias(0)
     d.V_DC_bias(0)
     d.Vcg(0)
+
+#%% quick
+Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak])
+Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC])
+
+
 
 #%% 1D sweep
 
@@ -152,7 +165,10 @@ field_temp_sweep = Sweep(sweep_params=[d.field, d.mc_current], plot_params=[d.R,
 # B=0 at -3.35 mT
 # IDC = 0 : d.I_DC_bias(-0.12) 
 #%% Run sweep
-Vgsweep.run([-2100,-2400,15], delays=[0], tasks=[[break_at_leakage]],cw=0) 
+d.Vg(0)
+time.sleep(3)
+Vgsweep.run([-2230,-2500,3], delays=[0.1], tasks=[[break_at_leakage]],cw=1) 
+d.Vg(-2230)
 #tasks=[[autorange_V_AC, autorange_I_AC]]
 
 # Vcgsweep.run([d.Vcg(),-800,15], delays=[0], tasks=[[break_at_leakage]], cw=1)
@@ -172,11 +188,9 @@ Vgsweep.run([-2100,-2400,15], delays=[0], tasks=[[break_at_leakage]],cw=0)
 # Bsweep.run([Bulim,Bllim,.09], delays=[1.5], cw=0)
 
 
-# station.magnet.polarity('NEGATIVE')
-Bsweep.run([-2000,2000,5], delays=[.3], cw=1)
-# d.field(0)
-# station.magnet.polarity('POSITIVE')
-# Bsweep.run([0,2000,20], delays=[.3], cw=1)
+Bsweep.run([-200,3000,5], delays=[.1], cw=1)
+d.field(0)
+
 
 
 # d.field(0)
@@ -189,7 +203,19 @@ Bsweep.run([-2000,2000,5], delays=[.3], cw=1)
 #%% Run 2D sweeps
 # IDC_Vg_sweep.run([[-900,900,18], [-1350,-2000,10]], delays=[.1,5])
 # VDC_Vg_sweep.run([], delays=[.15,10])
-Vg_field_sweep.run([[-2100,-2400,7],[0,2000,5]], delays=[.1,5])
+
+B_arr = np.concatenate([
+    np.arange(-200,0,20),
+    np.arange(0,1500,5), 
+    np.arange(1500,3000,10), 
+    np.arange(3000,4000,20),
+    np.arange(4000,5000,40),
+    np.arange(5000,9000,60)])
+len(B_arr)
+
+Vg_field_sweep.run([[-2230,-2500,7],[1600,0,7]], delays=[.1,3])
+d.Vg(-2200)
+
 
 # Vcg_reps.run([[-300,800,5],[0,5,1]], delays=[.2,3], cw=1)
 # Vcg_field_sweep.run([[-1000,1000,5],[0,9000,150]], delays=[.2,30])
