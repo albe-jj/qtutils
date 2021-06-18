@@ -17,7 +17,7 @@ class Sweep:
     file_label = None
     loc = None
 
-    def __init__(self, sweep_params, plot_params, no_save_params):
+    def __init__(self, sweep_params, plot_params, no_save_params=[]):
 
         if not isinstance(sweep_params, list):
             sweep_params = [sweep_params]
