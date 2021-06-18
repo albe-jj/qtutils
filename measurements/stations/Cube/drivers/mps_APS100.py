@@ -1,3 +1,14 @@
+# -*- coding: utf-8 -*-
+# @Author: Alberto Tosato
+# @Date:   2021-05-26 09:30:28
+# @Last Modified by:   TUD209063
+# @Last Modified time: 2021-05-26 09:50:08
+
+# Please read the driver, there is no guarentee the driver does what you expect it to do
+# make sure you are using the latest version of this drivers (you can find it on github)
+# ask Alberto a.tosato@tudelft.nl if you have any questions
+
+
 from qcodes import VisaInstrument
 from qcodes.utils.validators import Numbers, Ints, OnOff
 import re
