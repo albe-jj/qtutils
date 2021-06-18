@@ -22,7 +22,7 @@ class DevConfig:
     Vcg_gain = 5 #V/V
 
     # Vmeasure gains: M2b * srs preamp
-    Vmeasure_gain_AC = 1e3 * 1  #V/V
+    Vmeasure_gain_AC = 10e3 * 1  #V/V
     Vxymeasure_gain_AC = 10e3 #V/V
     Vmeasure_gain_DC = 1e3 * 1 #V/V
 
@@ -92,7 +92,7 @@ class DevConfig:
         'I_AC_Y': {'instrument': 'lia2','parameter': 'Y', 
               'unit':'A', 'scale': Imeasure_gain_AC},
 
-        # 'seat': {'instrument': 'cryomux','parameter': 'sample'}, #1e3 -> DAC is in mV
+        'seat': {'instrument': 'cryomux','parameter': 'sample'}, #1e3 -> DAC is in mV
         
         'mc_current': {'instrument': 'ivvi','parameter': 'dac15', 
                       'step': 100, 'inter_delay': .05, 'scale': 1/(Istill_gain*1e6)*1e3, 'unit': 'uA'}, #1e3 -> DAC is in mV

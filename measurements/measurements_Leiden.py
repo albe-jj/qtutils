@@ -34,7 +34,7 @@ if Station.default is None:
 else: 
     station = Station.default
     if 'spi' in list(station.components): station.spi.spi_rack.close()
-    pw.close()
+    # pw.close()
 
 station.load_ivvi()
 station.load_spi()
@@ -83,7 +83,7 @@ get_He_level = lambda: round(float(keithley_He.read().strip()[4:])/2*1e3-4)
 # d.add_parameter('He', get_cmd=get_He_level)
 # param_ls=['Vg', 'Vcg', 'V_DC_bias', 'field', 'I_DC_bias','still_current','mc_current', 'temp']
 param_ls=['Vg', 'field']
-pw = param_viewer(station=station, gates_object=d, param_ls=param_ls)
+# pw = param_viewer(station=station, gates_object=d, param_ls=param_ls)
 
 timee = ElapsedTimeParameter('time')
 timee.reset_clock()
@@ -93,12 +93,16 @@ break_at_leakage = BreakIf(lambda: abs(d.I_leak())>2) #leakage in nA
 #autorange lia
 autorange_V_AC = Task(partial(lia_utils.autorange_lia, station.lia1))
 autorange_I_AC = Task(partial(lia_utils.autorange_lia, station.lia2))
-zero_gate_wait = Task()
 
+#zero gate
 def zero_Vg():
-    d.Vg(0)
+    d.Vg(-3000)
     time.sleep(3)
-    
+zero_gate_wait = Task(zero_Vg)
+
+def kick_Vg(vg):
+    d.Vg(vg)
+    time.sleep(3)
     
 
 # def reduce_still_heater():
@@ -116,8 +120,9 @@ def zero_all():
     d.Vcg(0)
 
 #%% quick
-Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak])
-Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC])
+no_save_params = [d.field, d.reps, d.mc_current, d.still_current, d.I_leak]
+Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak], no_save_params=no_save_params)
+Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC], no_save_params=no_save_params)
 
 
 
@@ -126,35 +131,32 @@ Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy,
 # Sweep.location = None #r'D:\LeidenMCK50_fridge\Scripts\Albo\data'
 # Sweep.file_label = 'SQ21-72-1_LF1_S3_D2'
 
-Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak])
-Vcgsweep = Sweep(sweep_params=d.Vcg, plot_params=[d.G, d.R, d.I_AC, d.V_AC, d.I_leak])
-VDCsweep = Sweep(sweep_params=d.V_DC_bias, plot_params=[d.R, d.G, d.I_AC, d.V_AC, d.I_DC])
-IDCsweep = Sweep(sweep_params=d.I_DC_bias, plot_params=[d.R, d.I_AC, d.V_AC, d.V_DC])
-
-Bsweep = Sweep(sweep_params=d.field, plot_params=[d.Rsq, d.Rxy, d.V_AC, d.Vxy_AC, d.I_DC])
-# timesweep = Sweep(sweep_params=d.repetitions, plot_params=[d.Rsq, d.I_AC, d.V_AC])
-timesweep = Sweep(sweep_params=d.reps, plot_params=[d.temp, d.V_AC_therm, d.I_AC_therm])
-
-temp_sweep = Sweep(sweep_params=d.mc_current, plot_params=[d.temp, d.R, d.V_AC])
+# Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak])
+# Vcgsweep = Sweep(sweep_params=d.Vcg, plot_params=[d.G, d.R, d.I_AC, d.V_AC, d.I_leak])
+# VDCsweep = Sweep(sweep_params=d.V_DC_bias, plot_params=[d.R, d.G, d.I_AC, d.V_AC, d.I_DC])
+# IDCsweep = Sweep(sweep_params=d.I_DC_bias, plot_params=[d.R, d.I_AC, d.V_AC, d.V_DC])
+# Bsweep = Sweep(sweep_params=d.field, plot_params=[d.Rsq, d.Rxy, d.V_AC, d.Vxy_AC, d.I_DC])
+# timesweep = Sweep(sweep_params=d.reps, plot_params=[d.temp, d.V_AC_therm, d.I_AC_therm])\
+# temp_sweep = Sweep(sweep_params=d.mc_current, plot_params=[d.temp, d.R, d.V_AC])
 
 #%% 2D sweep
 
-Vg_temp_sweep = Sweep(sweep_params=[d.Vg, d.mc_current], plot_params=[d.R, d.V_AC, d.V_DC, d.temp])
-Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC])
+# Vg_temp_sweep = Sweep(sweep_params=[d.Vg, d.mc_current], plot_params=[d.R, d.V_AC, d.V_DC, d.temp])
+# Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC])
 
-Vcg_reps = Sweep(sweep_params=[d.Vcg, d.reps], plot_params=[d.G, d.I_AC, d.V_AC])
-Vcg_field_sweep = Sweep(sweep_params=[d.Vcg, d.field], plot_params=[d.G, d.I_AC, d.V_AC])
+# Vcg_reps = Sweep(sweep_params=[d.Vcg, d.reps], plot_params=[d.G, d.I_AC, d.V_AC])
+# Vcg_field_sweep = Sweep(sweep_params=[d.Vcg, d.field], plot_params=[d.G, d.I_AC, d.V_AC])
 
-VDC_field_sweep = Sweep(sweep_params=[d.V_DC_bias, d.field], plot_params=[d.G, d.I_AC, d.V_AC])
-VDC_Vcg_sweep = Sweep(sweep_params=[d.V_DC_bias, d.Vcg], plot_params=[d.G, d.I_AC, d.V_AC])
-IDC_Vg_sweep = Sweep(sweep_params=[d.I_DC_bias, d.Vg], plot_params=[d.R, d.V_AC, d.V_DC])
-VDC_Vg_sweep = Sweep(sweep_params=[d.V_DC_bias, d.Vg], plot_params=[d.G, d.I_AC, d.V_DC])
-VDC_reps = Sweep(sweep_params=[d.V_DC_bias, d.reps], plot_params=[d.G, d.I_AC, d.V_AC])
+# VDC_field_sweep = Sweep(sweep_params=[d.V_DC_bias, d.field], plot_params=[d.G, d.I_AC, d.V_AC])
+# VDC_Vcg_sweep = Sweep(sweep_params=[d.V_DC_bias, d.Vcg], plot_params=[d.G, d.I_AC, d.V_AC])
+# IDC_Vg_sweep = Sweep(sweep_params=[d.I_DC_bias, d.Vg], plot_params=[d.R, d.V_AC, d.V_DC])
+# VDC_Vg_sweep = Sweep(sweep_params=[d.V_DC_bias, d.Vg], plot_params=[d.G, d.I_AC, d.V_DC])
+# VDC_reps = Sweep(sweep_params=[d.V_DC_bias, d.reps], plot_params=[d.G, d.I_AC, d.V_AC])
 
-IDC_temp_sweep = Sweep(sweep_params=[d.I_DC_bias, d.mc_current], plot_params=[d.R, d.V_AC, d.V_DC, d.temp])
-IDC_field_sweep = Sweep(sweep_params=[d.I_DC_bias, d.field], plot_params=[d.R, d.V_AC, d.V_DC])
+# IDC_temp_sweep = Sweep(sweep_params=[d.I_DC_bias, d.mc_current], plot_params=[d.R, d.V_AC, d.V_DC, d.temp])
+# IDC_field_sweep = Sweep(sweep_params=[d.I_DC_bias, d.field], plot_params=[d.R, d.V_AC, d.V_DC])
 
-field_temp_sweep = Sweep(sweep_params=[d.field, d.mc_current], plot_params=[d.R, d.V_AC, d.V_DC])
+# field_temp_sweep = Sweep(sweep_params=[d.field, d.mc_current], plot_params=[d.R, d.V_AC, d.V_DC])
 
 # V_AC2Dsweep = Sweep(sweep_params=[d.V_AC_bias, d.Vg], plot_params=[d.I_AC, d.V_AC, d.R])
 # V_AC2Dsweep.run([[0,100,1],[0,5,1]], cw=1)
@@ -165,10 +167,9 @@ field_temp_sweep = Sweep(sweep_params=[d.field, d.mc_current], plot_params=[d.R,
 # B=0 at -3.35 mT
 # IDC = 0 : d.I_DC_bias(-0.12) 
 #%% Run sweep
-d.Vg(0)
-time.sleep(3)
-Vgsweep.run([-2230,-2500,3], delays=[0.1], tasks=[[break_at_leakage]],cw=1) 
-d.Vg(-2230)
+
+Vgsweep.run([-3250,-3700,9], delays=[0.1], tasks=[[break_at_leakage]],cw=0) 
+d.Vg(-3250)
 #tasks=[[autorange_V_AC, autorange_I_AC]]
 
 # Vcgsweep.run([d.Vcg(),-800,15], delays=[0], tasks=[[break_at_leakage]], cw=1)
@@ -188,8 +189,8 @@ d.Vg(-2230)
 # Bsweep.run([Bulim,Bllim,.09], delays=[1.5], cw=0)
 
 
-Bsweep.run([-200,3000,5], delays=[.1], cw=1)
-d.field(0)
+# Bsweep.run([-200,3000,5], delays=[.1], cw=1)
+# d.field(0)
 
 
 
@@ -206,16 +207,25 @@ d.field(0)
 
 B_arr = np.concatenate([
     np.arange(-200,0,20),
-    np.arange(0,1500,5), 
-    np.arange(1500,3000,10), 
-    np.arange(3000,4000,20),
-    np.arange(4000,5000,40),
-    np.arange(5000,9000,60)])
+    np.arange(0,100,5),
+    np.arange(100,400,3),
+    np.arange(400,700,5), 
+    np.arange(700,1000,8), 
+    np.arange(1000,2000,15), 
+    np.arange(2000,3500,25),
+    np.arange(3500,5000,50),
+    np.arange(5000,8000,80),
+    np.arange(8000,10300,100)])
+B_arr = np.flip(B_arr).tolist()
 len(B_arr)
 
-Vg_field_sweep.run([[-2230,-2500,7],[1600,0,7]], delays=[.1,3])
-d.Vg(-2200)
+d.Vg(-2700)
+Vg_field_sweep.run([[-3265,-3700,1.17],B_arr], delays=[.14,3],  tasks=[[],[Task(kick_Vg,-2700)]])
+d.Vg(-3255)
 
+# d.Vg(-2700)
+# Vg_field_sweep.run([[-3250,-3700,3],[-250,250,50]], delays=[.15,3], tasks=[[],[Task(kick_Vg,-2700)]])
+# d.Vg(-3250)
 
 # Vcg_reps.run([[-300,800,5],[0,5,1]], delays=[.2,3], cw=1)
 # Vcg_field_sweep.run([[-1000,1000,5],[0,9000,150]], delays=[.2,30])

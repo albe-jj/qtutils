@@ -13,6 +13,7 @@ from qtutils.analysis import data_utils
 
 from qtutils.analysis.plot_utils import * 
 from qtutils.analysis.import_data_utils import *
+from .mgr_utils import *
 from importlib import reload
 
 import sys
