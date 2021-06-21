@@ -26,7 +26,7 @@ import numpy as np
 
 rm = ResourceManager()
 
-
+#%%
 # initialize the station
 station_config_path = r'D:\Albo_LF\qtutils\measurements\stations\Leiden\config_station.yaml'
 if Station.default is None:
@@ -46,21 +46,22 @@ station.load_lia5()
 station.load_keithley1()
 station.load_keithley2()
 station.load_keithley3()
-# station.load_sourcemeter()
+station.load_sourcemeter()
 station.load_magnet() #cryogenics MPS
-# station.load_temp_control()
+# station.load_temp_control() #Leiden cryogenics
 station.load_front_panel()
-station.load_S4g(spi_rack=station.spi.spi_rack)
-station.load_Paral_S4g(num_dacs=4, S4g=station.S4g)
+# station.load_S4g(spi_rack=station.spi.spi_rack)
+# station.load_Paral_S4g(num_dacs=4, S4g=station.S4g)
 station.load_U2(spi_rack=station.spi.spi_rack)
 station.load_cryomux()
 # station.magnet.unit('TESLA') #add this in yaml config file
 
 #mps with Keithley source meter
-# station.sourcemeter.smua.mode('current')
-# station.sourcemeter.smua.limitv(5)
-# station.sourcemeter.smua.sourcerange_i(1.5) #source_autorange_i_enabled()
-# station.sourcemeter.smua.output(True)
+station.sourcemeter.smua.mode('current')
+station.sourcemeter.smua.limitv(5)
+station.sourcemeter.smua.limiti(1.5)
+# station.sourcemeter.smua.source_autorange_i_enabled(True)
+station.sourcemeter.smua.output(True)
 
 station.U2.span1('4v bi')#?!  
 station.cryomux.set_voltages_U2_minimum()
@@ -120,10 +121,14 @@ def zero_all():
     d.Vcg(0)
 
 #%% quick
-no_save_params = [d.field, d.reps, d.mc_current, d.still_current, d.I_leak]
-Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak], no_save_params=no_save_params)
+no_save_params = [d.field, d.reps, d.mc_current, d.still_current, d.I_leak, d.temp]
+Vgsweep = Sweep(sweep_params=d.Vg, plot_params=[d.Rsq, d.I_AC, d.V_AC, d.I_leak])
 Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy, d.I_AC], no_save_params=no_save_params)
+Bsweep = Sweep(sweep_params=d.field, plot_params=[d.Rsq, d.Rxy, d.V_AC, d.Vxy_AC])
 
+field_Vg_sweep = Sweep(sweep_params=[d.field, d.Vg], plot_params=[d.Rsq, d.Rxy, d.I_AC])
+
+timesweep = Sweep(sweep_params=d.reps, plot_params=[d.Rsq, d.Rxy, d.I_AC] , no_save_params=no_save_params)
 
 
 #%% 1D sweep
@@ -168,8 +173,8 @@ Vg_field_sweep =  Sweep(sweep_params=[d.Vg, d.field], plot_params=[d.Rsq, d.Rxy,
 # IDC = 0 : d.I_DC_bias(-0.12) 
 #%% Run sweep
 
-Vgsweep.run([-3250,-3700,9], delays=[0.1], tasks=[[break_at_leakage]],cw=0) 
-d.Vg(-3250)
+Vgsweep.run([-1600,-2000,5], delays=[0], tasks=[[break_at_leakage]],cw=0) 
+d.Vg(-1600)
 #tasks=[[autorange_V_AC, autorange_I_AC]]
 
 # Vcgsweep.run([d.Vcg(),-800,15], delays=[0], tasks=[[break_at_leakage]], cw=1)
@@ -189,7 +194,7 @@ d.Vg(-3250)
 # Bsweep.run([Bulim,Bllim,.09], delays=[1.5], cw=0)
 
 
-# Bsweep.run([-200,3000,5], delays=[.1], cw=1)
+Bsweep.run([0,50,3], delays=[.1], cw=1)
 # d.field(0)
 
 
@@ -208,24 +213,30 @@ d.Vg(-3250)
 B_arr = np.concatenate([
     np.arange(-200,0,20),
     np.arange(0,100,5),
-    np.arange(100,400,3),
-    np.arange(400,700,5), 
+    np.arange(100,500,5),
+    np.arange(500,700,6), 
     np.arange(700,1000,8), 
-    np.arange(1000,2000,15), 
-    np.arange(2000,3500,25),
-    np.arange(3500,5000,50),
-    np.arange(5000,8000,80),
-    np.arange(8000,10300,100)])
+    np.arange(1000,2000,16), 
+    np.arange(2000,3500,22),
+    np.arange(3500,4100,50),
+    ])
 B_arr = np.flip(B_arr).tolist()
-len(B_arr)
+print(len(B_arr))
 
-d.Vg(-2700)
-Vg_field_sweep.run([[-3265,-3700,1.17],B_arr], delays=[.14,3],  tasks=[[],[Task(kick_Vg,-2700)]])
-d.Vg(-3255)
+Vg_field_sweep.run([[-1610,-2000,1.1],B_arr], delays=[.14,3])
+d.Vg(-1610)
 
-# d.Vg(-2700)
-# Vg_field_sweep.run([[-3250,-3700,3],[-250,250,50]], delays=[.15,3], tasks=[[],[Task(kick_Vg,-2700)]])
-# d.Vg(-3250)
+# Vg_field_sweep.run([[-1600,-2000,5],[5000, 2000, 70]], delays=[.14,3])
+# d.Vg(-1600)
+
+# Vg_field_sweep.run([[-2100,-2500,8],[1000, 3200, 40]], delays=[.14,3])
+# d.Vg(-2100)
+
+d.Vg(-360)
+Vg_field_sweep.run([[-1000,-760,3],[-300,350,50]], delays=[.15,3])
+d.Vg(-360)
+
+field_Vg_sweep.run([[-170,170,1],[-1660,-1850,10]], delays=[.3,2])
 
 # Vcg_reps.run([[-300,800,5],[0,5,1]], delays=[.2,3], cw=1)
 # Vcg_field_sweep.run([[-1000,1000,5],[0,9000,150]], delays=[.2,30])

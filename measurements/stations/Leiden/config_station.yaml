@@ -82,6 +82,8 @@ instruments:
     type:  qcodes.instrument_drivers.tektronix.Keithley_2600_channels.Keithley_2600
     enable_forced_reconnect: true
     address:  USB0::0x05E6::0x2614::4349476::INSTR
+    init:
+      name: sourcemeter
 
   magnet:
     type: qtutils.measurements.stations.Leiden.drivers.CryogenicSMS120C.CryogenicSMS120C

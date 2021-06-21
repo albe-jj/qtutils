@@ -99,7 +99,7 @@ while True:
     elif P_still()<9.9e-2 and counts>5: #every 3 cycles and if P_still<9.5
         increase_heaters(still, mc)
         counts = 0
-    for _ in range(3): time.sleep(1)
+    for _ in range(10): time.sleep(1)
     counts+=1
     
         

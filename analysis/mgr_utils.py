@@ -2,7 +2,7 @@
 # @Author: atosat
 # @Date:   2021-06-17 14:05:44
 # @Last Modified by:   TUD278249
-# @Last Modified time: 2021-06-17 16:40:28
+# @Last Modified time: 2021-06-20 14:17:55
 
 from scipy import constants
 from qtutils.analysis.plot_utils import * 
@@ -14,7 +14,7 @@ hbar = constants.hbar
 h = constants.h
 G0 = 2*constants.e**2/constants.h
 
-def calc_mob_dens(ds, B_slice, Vg_slice, std_xy_tol, std_xx_tol, with_plts=True):
+def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6, std_xx_tol=1e6, with_plts=True):
     dsr = ds.sel(field=B_slice, Vg=Vg_slice)
     dsr = dsr.where((dsr.Rxy.std('field')<std_xy_tol) & (dsr.Rsq.std('field')<std_xx_tol))
     dsr = dsr.dropna(dim='Vg', subset=['Rxy'])

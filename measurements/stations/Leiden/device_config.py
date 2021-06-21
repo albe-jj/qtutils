@@ -46,16 +46,16 @@ class DevConfig:
         ### Magnet power supplies
 
         # Cryogenics
-        'field': {'instrument': 'magnet', 'parameter': 'field',
-                  'scale':1e-3, 'unit':'mT'},
+        # 'field': {'instrument': 'magnet', 'parameter': 'field',
+        #           'scale':1e-3, 'unit':'mT'},
 
-        #SPI S4g 
+        # SPI S4g 
         # 'field': {'instrument':  'Paral_S4g','parameter': 'current', 
         #         'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 5.6 mT per dac (50mA) 
 
         #Keitheley sourcemeter 2614B
-        # 'field': {'instrument':  'sourcemeter','parameter': 'smua.curr', 
-        #         'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 1.5A -> 170 mT 
+        'field': {'instrument':  'sourcemeter','parameter': 'smua.curr', 
+                'step': 0.05, 'inter_delay': 0.01, 'scale':1/(0.113375 * 1e3), 'unit':'mT'}, #0.113375 T/A # max 1.5A -> 170 mT 
 
 
         'V_AC_bias': {'instrument': 'lia1','parameter': 'amplitude',  
@@ -104,10 +104,10 @@ class DevConfig:
 
         # 'VAC_bias_therm': {'instrument': 'lia3','parameter': 'amplitude',  
         #         'step': 1, 'inter_delay': 0, 'scale':1/100e-6*1e-6, 'unit':'uV'}, #1e2 -> isoiin is diveded by 100
-        # 'I_AC_therm': {'instrument': 'lia4','parameter': 'X', 
-        #       'unit':'A', 'scale': I_temp_gain},
-        # 'V_AC_therm': {'instrument': 'lia3','parameter': 'X', 
-        #       'unit':'A', 'scale': V_temp_gain},
+        'I_AC_therm': {'instrument': 'lia4','parameter': 'X', 
+              'unit':'A', 'scale': I_temp_gain},
+        'V_AC_therm': {'instrument': 'lia3','parameter': 'X', 
+              'unit':'A', 'scale': V_temp_gain},
 
 
         }
@@ -124,7 +124,7 @@ class DevConfig:
         # self.d.add_parameter('R',get_cmd=self.calc_R, unit='Ohm')
         self.d.add_parameter('Rsq',get_cmd=self.calc_Rsq, unit='Ohm')
         self.d.add_parameter('Rxy',get_cmd=self.calc_Rxy, unit='Ohm')
-        # self.d.add_parameter('temp', get_cmd=self.calc_temp, unit='mK')
+        self.d.add_parameter('temp', get_cmd=self.calc_temp, unit='mK')
 
         self.d.add_parameter('reps', inter_delay=0, set_cmd=None)
         
