@@ -75,7 +75,7 @@ VACsweep.run([0,10,1], cw=0)
 VAC_Vg_2Dsweep_return = Sweep(sweep_params=[d.V_AC_bias, d.Vg], plot_params=[d.I_AC, d.V_AC, d.R])
 
 VAC_vals = [0,10,1]
-VAC_Vg_2Dsweep_return.run([VAC_vals, [0,100,10]], tasks=[[],[Loop(d.Vg.sweep(0,10,num=10)).each(d.R)]])
+VAC_Vg_2Dsweep_return.run([VAC_vals, [0,100,10]], tasks=[[],[Loop(d.V_AC_bias.sweep(0,10,num=10)).each(d.R)]])
 #%%
 # sweep_seq(
 #             outputs = [d.I_AC],
