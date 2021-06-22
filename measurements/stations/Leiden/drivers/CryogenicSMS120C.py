@@ -13,6 +13,7 @@ This magnet PS driver has been tested with:
 import re
 import logging
 import time
+import numpy as np
 
 from qcodes.utils.validators import Numbers
 from qcodes import VisaInstrument
@@ -20,7 +21,6 @@ import pyvisa.constants as vi_const
 
 
 log = logging.getLogger(__name__)
-
 
 class CryogenicSMS120C(VisaInstrument):
 
@@ -115,7 +115,7 @@ class CryogenicSMS120C(VisaInstrument):
 
         self.add_parameter(name='field',
                            get_cmd=self._get_field,
-                           set_cmd=self._set_field,
+                           set_cmd=self._set_field_bi,
                            vals=Numbers(-self._field_rating,  # i.e. ~12T, calculated
                                         self._field_rating))
 
@@ -447,6 +447,7 @@ class CryogenicSMS120C(VisaInstrument):
                 'Could not ramp, ramp rate is over the set limit, please lower.')
             return False
 
+  
     # Between any two commands, there are must be around 200ms waiting time.
     def _set_field(self, val):
         if not self.switchHeater(): # If switch heater is OFF
@@ -463,9 +464,6 @@ class CryogenicSMS120C(VisaInstrument):
                 self._set_pauseRamp(0)               # Unpause the controller
                 # Ramp magnet/field to MID or ZERO (Note: Using standard write 
                 # as read returns an error/is non-existent).
-                if self.wait_field_to_target:
-                    while self.rampStatus() == 'RAMPING':
-                        time.sleep(0.1)
                 if val == 0:
                     self.write('RAMP ZERO')
                     log.info('Ramping magnetic field to zero...')
@@ -477,19 +475,42 @@ class CryogenicSMS120C(VisaInstrument):
                     'Target field is outside max. limits, please lower the target value.')
         else:
             log.error('Cannot set field - check magnet status.')
-    
-    def _set_field_bidirectional(self, val):
-        polarity = self._get_polarity()
-        desired_polarity = '-' if val < 0 else '+'
-        
-        if ((polarity == '+' and desired_polarity == '-') or 
-            (polarity == '-' and desired_polarity == '+')):
-            self._set_field(0)
-            # This is, sadly, blocking
-            self._wait_for_field_zero(0)
-            self._set_polarity(desired_polarity)
 
-        self._set_field(abs(val))
+        if self.wait_field_to_target:
+            while ((self.rampStatus() == 'RAMPING') or (not(np.isclose(self.field(),val, atol=50e-3)))): #TODO remove second condition
+                time.sleep(0.1)
+        return
+
+
+    def _set_field_bi(self, target_B):
+        if target_B>=0 and self.polarity()=='NEGATIVE':
+            self._change_polarity('POSITIVE')
+        elif target_B<0 and self.polarity()=='POSITIVE':
+            self._change_polarity('NEGATIVE')
+        
+        self._set_field(target_B)
+    
+
+    def _change_polarity(self, polarity):
+        log.info(f'changing polarity to {polarity}')
+        while self.polarity()!=polarity:
+            self._set_field(0)
+            self.polarity(polarity)
+            time.sleep(.1)
+
+    
+    # def _set_field_bidirectional(self, val):
+    #     polarity = self._get_polarity()
+    #     desired_polarity = '-' if val < 0 else '+'
+        
+    #     if ((polarity == '+' and desired_polarity == '-') or 
+    #         (polarity == '-' and desired_polarity == '+')):
+    #         self._set_field(0)
+    #         # This is, sadly, blocking
+    #         self._wait_for_field_zero(0)
+    #         self._set_polarity(desired_polarity)
+
+    #     self._set_field(abs(val))
         
     def _wait_for_field_zero(self, field_threshold=0.003, refresh_time=0.1):
         """Waits for the field to be within a certain threshold"""

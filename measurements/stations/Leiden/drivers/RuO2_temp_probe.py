@@ -2,7 +2,7 @@
 # @Author: Alberto Tosato
 # @Date:   2021-05-25 14:58:12
 # @Last Modified by:   TUD278249
-# @Last Modified time: 2021-05-25 18:36:15
+# @Last Modified time: 2021-06-16 13:21:05
 import numpy as np
 
 def get_temp_RuO2(V_bias, I, I_gain):
@@ -13,6 +13,8 @@ def get_temp_RuO2(V_bias, I, I_gain):
 def calc_Rx(V_bias, I, I_gain):
     R_Imeas = 100 + 1e-4 * I_gain # M1h for low noise setting
     Rx = V_bias / I - R_Imeas
+    if Rx<=0:
+        Rx = np.nan
     return Rx
 
 def RuO2_2k_R2Temp(R):

@@ -50,6 +50,13 @@ instruments:
     init:
       name: lia4
   
+  lia5:
+    type: qcodes.instrument_drivers.stanford_research.SR830.SR830
+    enable_forced_reconnect: true
+    address: GPIB0::9::INSTR
+    init:
+      name: lia5
+
   keithley1: 
     type: qcodes_contrib_drivers.drivers.Tektronix.Keithley_2700.Keithley_2700
     enable_forced_reconnect: true
@@ -71,8 +78,15 @@ instruments:
     init:
       name: keithley3
 
+  sourcemeter:
+    type:  qcodes.instrument_drivers.tektronix.Keithley_2600_channels.Keithley_2600
+    enable_forced_reconnect: true
+    address:  USB0::0x05E6::0x2614::4349476::INSTR
+    init:
+      name: sourcemeter
+
   magnet:
-    type: stations.Leiden.drivers.CryogenicSMS120C.CryogenicSMS120C
+    type: qtutils.measurements.stations.Leiden.drivers.CryogenicSMS120C.CryogenicSMS120C
     enable_forced_reconnect: true
     address: ASRL21::INSTR
 

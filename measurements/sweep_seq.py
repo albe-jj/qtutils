@@ -108,7 +108,7 @@ def sweep_seq(outputs, sequence=None, sweep_param_ranges=[], plot_param_ls=[],
               location=None, delays= None, file_label='', 
               liveplotting = True, liveplotwindow=None, settle_time=0, 
               maxplots=6, randomize = None, verbose = 1, plt_update_dim = None, clearwindow = True,
-              tasks=None, inner_loop_with_return=False,
+              tasks=None,
               use_threads=False, 
               **kwargs):
 

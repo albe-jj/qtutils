@@ -7,6 +7,7 @@ Created on Wed Sep 16 15:08:51 2020
 
 from qcodes import Instrument
 from qcodes.utils.validators import Numbers
+from functools import reduce
 
 class VirtualInstrument(Instrument):
     """
@@ -26,12 +27,14 @@ class VirtualInstrument(Instrument):
 
 
     def _map_parameters(self, parameter_map):
-        """Add all parameters that need to be mapped to the cryomux"""
+        """Add all parameters that need to be mapped into a single virtual instrument"""
         for parameter_name in parameter_map:
             info = parameter_map[parameter_name].copy()
 
             external_instrument = Instrument.find_instrument(info.pop('instrument'))
-            external_parameter = external_instrument[info.pop('parameter')]
+            # external_parameter = external_instrument[info.pop('parameter')]
+            param_seq = info.pop('parameter').split('.')
+            external_parameter = reduce(getattr, param_seq, external_instrument)
             unit = info.pop('unit', external_parameter.unit)
             
             if external_parameter.gettable:
