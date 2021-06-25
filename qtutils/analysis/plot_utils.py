@@ -2,7 +2,7 @@
 # @Author: atosato
 # @Date:   2021-04-10 11:23:37
 # @Last Modified by:   atosato
-# @Last Modified time: 2021-04-10 11:24:20
+# @Last Modified time: 2021-06-25 15:18:31
 
 import matplotlib.pyplot as plt
 import io
@@ -29,6 +29,11 @@ def __init__():
     plt.rcParams['font.size'] = 17
     plt.rcParams['mathtext.rm'] = 'Arial'
     plt.rcParams['savefig.format'] = 'svg'
+
+    plt.rcParams['pdf.fonttype'] = 42 #for illustrator to get editable text (Type 2/TrueType fonts)
+    plt.rcParams['ps.fonttype'] = 42
+    plt.rcParams['savefig.bbox'] = 'tight' #to avoid clipping mask cropping the axis label
+    plt.rcParams['mathtext.fontset'] = 'cm'
 
 __init__()
 

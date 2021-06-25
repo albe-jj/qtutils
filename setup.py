@@ -6,7 +6,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 setuptools.setup(
     name="qtutils",
     version="0.1",
-    author="Alberto Tosat",
+    author="Alberto Tosato",
     author_email="albe.jj@gmail.com",
     description="Measurement and analysis software",
     long_description=long_description,
@@ -20,7 +20,10 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    package_dir={"": "src"},
-    packages=setuptools.find_packages(where=None),
+    # package_dir={"": "qtutils"},
+    packages=setuptools.find_packages(),
     python_requires=">=3.6",
+    install_requires=[
+        'pyqtgraph', 'xarray', 'matplotlib'
+    ],
 )

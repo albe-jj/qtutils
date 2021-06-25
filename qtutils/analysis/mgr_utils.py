@@ -6,6 +6,10 @@
 
 from scipy import constants
 from qtutils.analysis.plot_utils import * 
+from scipy.fft import fft
+import xrft
+from scipy.signal import hilbert, find_peaks
+
 
 me = constants.electron_mass
 ech = constants.elementary_charge
@@ -55,3 +59,33 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
 
 
     return dsr
+
+
+def calc_sdh_dens(da, interp_arr, m, p_trash=2):
+    '''
+    Calculate SdH density given a datarray.
+    da:
+    interp_arr: array used for interpolating 1/B
+    m: molteplicity (2 if Zeeman not resolved)
+    p_trashold: peak finder hight trahold
+    '''
+    das = da.swap_dims({'field':'invB'})
+    das = das.interp(invB=interp_arr)
+    
+    ax1,ax2 = two_axis()
+    das.plot(marker='.',ax=ax1)
+
+
+    # das.sel(invB=slice(None)).G.plot()
+    das = (das-das.mean('invB'))/das.max()
+    da_dft = xrft.fft(das)
+    da_dft['ampl'] = abs(da_dft.sel(freq_invB=slice(0,None)).real)
+    da_dft['dens'] = m * 2.415 * 1e10 * 1/da_dft.freq_invB
+    da_dft.ampl.plot(x='dens', xlim=(0,2e10))
+
+    idx,_ = find_peaks(da_dft.ampl, height=p_trash) 
+    p_dens = da_dft.isel(freq_invB=idx).dens.values
+    plt.scatter(da_dft.isel(freq_invB=idx).dens, da_dft.isel(freq_invB=idx).ampl, marker='x', c='r')
+    for i in p_dens:
+        print('density: {:.2e} cm^-2'.format(i))
+    return da_dft

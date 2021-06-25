@@ -11,9 +11,10 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from scipy import constants
 
-from path_utils import get_root, upload_to_Mdrive
 from tabulate import tabulate
 from datetime import datetime
+
+from .path_utils import get_root, upload_to_Mdrive
 
 
 G0 = 2*constants.e**2/constants.h
@@ -33,7 +34,7 @@ class DataImporter:
         if network_data_folder:
             network_data_folder = Path(network_data_folder)
             if not network_data_folder.is_dir():
-                print('could not find:\n', network_data_folder)
+                print('could not find:', network_data_folder)
         self.network_data_folder = network_data_folder
 
 

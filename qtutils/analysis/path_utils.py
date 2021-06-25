@@ -1,13 +1,32 @@
 from pathlib import Path
 from shutil import copyfile, copytree, rmtree
+import win32api
 
+
+# def get_root(root):
+#     'get V drive if not M'
+#     if not root.is_dir():
+#         path_ls = Path(root).parts
+#         root = Path('V://').joinpath(*path_ls[1:])
+#     return root
 
 def get_root(root):
-    'get V drive if not M'
-    if not root.is_dir():
+    'search for root in other drives'
+    if root.is_dir():
+        return root
+    else:
+        print('searching for root..')
+        drives = win32api.GetLogicalDriveStrings()
+        drives = drives.split('\000')[:-1]
         path_ls = Path(root).parts
-        root = Path('V://').joinpath(*path_ls[1:])
-    return root
+
+        for drive in drives:
+            path = Path(drive).joinpath(*path_ls[1:])
+            if path.is_dir():
+                print('found root in: ', path)
+                return path
+        print('could not find', root)
+        return root
 
 def upload_to_Mdrive(data_path, network_data_folder):
     'copy the file from network_location to drive if not in base_folder'
@@ -22,3 +41,5 @@ def upload_to_Mdrive(data_path, network_data_folder):
         copytree(src, dst)
     else:
         print('could not find', network_data_folder)
+
+

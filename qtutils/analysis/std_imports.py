@@ -11,8 +11,8 @@ from matplotlib import cm
 # from qtutils.analysis import ox_data_utils
 from qtutils.analysis import data_utils
 
-from qtutils.analysis.plot_utils import * 
-from qtutils.analysis.import_data_utils import *
+from .plot_utils import * 
+from .import_data_utils import *
 from .mgr_utils import *
 from importlib import reload
 
