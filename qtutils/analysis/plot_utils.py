@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: atosato
 # @Date:   2021-04-10 11:23:37
-# @Last Modified by:   atosato
-# @Last Modified time: 2021-06-25 15:18:31
+# @Last Modified by:   Alberto Tosato
+# @Last Modified time: 2021-06-28 17:01:33
 
 import matplotlib.pyplot as plt
 import io
@@ -27,11 +27,13 @@ def __init__():
     # plt.rcParams["legend.numpoints"] = 1.0
     # plt.rcParams["legend.frameon"] = False
     plt.rcParams['font.size'] = 17
-    plt.rcParams['mathtext.rm'] = 'Arial'
+    # plt.rcParams['mathtext.rm'] = 'Arial'
     plt.rcParams['savefig.format'] = 'svg'
 
     plt.rcParams['pdf.fonttype'] = 42 #for illustrator to get editable text (Type 2/TrueType fonts)
     plt.rcParams['ps.fonttype'] = 42
+    # plt.rcParams['svg.fonttype']='none' #'path'
+
     plt.rcParams['savefig.bbox'] = 'tight' #to avoid clipping mask cropping the axis label
     plt.rcParams['mathtext.fontset'] = 'cm'
 

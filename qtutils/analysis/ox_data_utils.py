@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: atosato
 # @Date:   2021-03-17 11:36:11
-# @Last Modified by:   atosato
-# @Last Modified time: 2021-04-11 12:46:51
+# @Last Modified by:   Alberto Tosato
+# @Last Modified time: 2021-06-28 18:17:19
 import pandas as pd
 import xarray as xr
 from pathlib import Path
@@ -38,7 +38,7 @@ class DataImporter:
         self.network_data_folder = network_data_folder
 
 
-    def import_data(self, name, I_gain=1e6, V_gain=1e3, refresh=False):
+    def import_data(self, name, I_gain=1e6, V_gain=1e3, refresh=False, debug=False):
         data_path = self.base_folder/Path(name)
         if self.network_data_folder and (not data_path.is_file() or refresh):
             upload_to_Mdrive(data_path, self.network_data_folder)
@@ -116,7 +116,12 @@ class DataImporter:
         # df['Temp_meas'] = df['T_mc']
 
         df.columns = df.columns.astype(str)
+        if debug:
+            return df
 
+        if df.index.duplicated().any():
+            print('WARNING: removing duplicated indexes')
+            df = df[~df.index.duplicated(keep='first')]
 
         ds = df.to_xarray()
 
