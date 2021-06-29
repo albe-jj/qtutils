@@ -25,6 +25,14 @@ def get_root(root):
             if path.is_dir():
                 print('found root in: ', path)
                 return path
+
+        #for bea's webdrive
+        for drive in drives:
+            path = Path(drive).joinpath('staff-groups',*path_ls[1:])
+            if path.is_dir():
+                print('found root in: ', path)
+                return path
+
         print('could not find', root)
         return root
 
