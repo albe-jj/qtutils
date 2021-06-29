@@ -15,7 +15,7 @@ def get_root(root):
     if root.is_dir():
         return root
     else:
-        print('searching for root..')
+        # print('searching for root..')
         drives = win32api.GetLogicalDriveStrings()
         drives = drives.split('\000')[:-1]
         path_ls = Path(root).parts
