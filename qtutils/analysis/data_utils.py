@@ -22,8 +22,11 @@ from qtutils.analysis.path_utils import get_root, upload_to_Mdrive
 
 
 
-G0 = 2*constants.e**2/constants.h
-
+G0 = constants.e**2/constants.h
+unit_factor = {
+				'n':1e-9,
+				'u':1e-6,
+				'm':1e-3}
 
 root = Path(r'M:\tnw\ns\qt\ScappucciLab\0_Group members\Alberto')
 
@@ -55,7 +58,8 @@ class DataImporter:
 
 
 
-	def import_data(self, location, names_dict={},refresh=False):
+	def import_data(self, location, names_dict={},refresh=False, 
+		with_metadata=False, G_units='e^2/h'):
 		file_location = self.base_folder/location
 		if self.network_data_folder and (not file_location.is_dir() or refresh):
 			network_data_folder=self.network_data_folder/'data'/file_location.parent.name
@@ -64,46 +68,15 @@ class DataImporter:
 
 		ds_ls = []
 		for file_path in file_path_ls:
-
-			# import as qcodes dataset
-			dataset = load_data(str(file_location))
-			
-			# parse column names
-			with open(file_path, 'r') as f:
-				line = [f.readline().replace('#', '').replace('"', '') for i in range(3)]
-			col_names = line[1].split()
-			col_long_names = line[0].split()
-			nr_set_vars = len(line[2].split())
-			name_set_vals = col_names[:nr_set_vars]
-
-			# remove cols that you both set and measure from measured values
-			usecol_idx = list(range(nr_set_vars)) + [idx for idx,name in enumerate(col_names) if name not in name_set_vals]
-			usecol_names = [col_names[i] for i in usecol_idx]
-			usecol_long_names = [col_long_names[i] for i in usecol_idx]
-			
-			
-			# create dataframe
-			df = pd.read_csv(file_path, sep='\t', skiprows=[0,1,2], usecols=usecol_idx, names=usecol_names)
-
-			# remove rows with nans in set_params
-			df.dropna(axis=0, subset=name_set_vals, inplace=True)
-
-			#set index
-			df.set_index(name_set_vals, inplace=True)
-
-			#remove parameters that are both set and saved, to avoid duplicate errors
-			duplicates = list(set(name_set_vals) & set(df.columns))
-			df.drop(columns=duplicates, inplace=True)
-
-
-
-
-			
-			# create DataSet and add metadata
-			ds = df.to_xarray()
-			for idx, key in enumerate(usecol_names):
-				ds[key].attrs = dataset.metadata['arrays'][usecol_long_names[idx]]
-				ds[key].attrs['units'] = dataset.metadata['arrays'][usecol_long_names[idx]]['unit']
+			dataset = load_data(str(file_path))
+			dataset.location = str(Path(dataset.location).parent) #to load metadaata need parent folder
+			dataset.formatter.read_metadata(dataset)
+			ds = dataset.to_xarray()
+			_add_param_spec_to_xarray_data_vars(dataset, ds)
+			_add_param_spec_to_xarray_coords(dataset, ds)
+			ds = _update_param_names(dataset, ds)
+			if not with_metadata:
+			    _drop_metadata(ds)
 				
 			# rename labels (optional)
 			ds = ds.rename(name_dict=names_dict)
@@ -113,12 +86,13 @@ class DataImporter:
 				print('V_AC max: {:.1f} uV'.format(ds.V_AC.max().values*1e6))
 				ds = ds.assign_coords(VDC=ds.V_DC*1e6)
 				ds.VDC.attrs['units'] = 'uV'
-
-			if 'G' in ds:
-				ds.G.attrs['units'] = '2$e^2$/h'
 			
-			# add coords
-			# for coord in coords:
+			# add calculateed data vars
+			if G_units == '2e^2/h':
+				Gzero = 2*G0
+
+			if 'field' in ds.data_vars:
+				pass#calc invB
 			
 			# add columns
 		#     ds['R'] = ds.V_AC/ds.I_AC
@@ -161,4 +135,43 @@ class DataImporter:
 	    # return output
 
 
-		
+
+def convert_units(ds, dim, conversion: tuple):
+	ds[dim] = ds.dim / convert_units[conversion]
+
+def _add_param_spec_to_xarray_data_vars(dataset, xrdataset) -> None:
+    for data_var in xrdataset.data_vars:
+        paramspec_dict = _paramspec_dict_with_extras(dataset, str(data_var))
+        xrdataset.data_vars[str(data_var)].attrs.update(paramspec_dict.items())
+        
+def _add_param_spec_to_xarray_coords(dataset, xrdataset) -> None:
+    for coord in xrdataset.coords:
+        if coord != "index":
+            paramspec_dict = _paramspec_dict_with_extras(dataset, str(coord))
+            xrdataset.coords[str(coord)].attrs.update(paramspec_dict.items())
+
+def _paramspec_dict_with_extras(dataset, dim_name: str):
+    paramspec_dict = dict(dataset.metadata['arrays'][str(dim_name)])
+    # units and long_name have special meaning in xarray that closely
+    # matches how qcodes uses unit and label so we copy these attributes
+    # https://xarray.pydata.org/en/stable/getting-started-guide/quick-overview.html#attributes
+    paramspec_dict["units"] = paramspec_dict.get("unit", "")
+    paramspec_dict["long_name"] = paramspec_dict.get("label", "")
+    return paramspec_dict
+
+
+
+def _update_param_names(dataset, xrdataset):
+    for coord in xrdataset.coords:
+        xrdataset = xrdataset.rename({coord:xrdataset[coord].long_name})
+
+    for data_var in xrdataset.data_vars:
+        long_name = xrdataset[data_var].long_name
+        if long_name in xrdataset.coords:
+            long_name+= '_meas'
+        xrdataset = xrdataset.rename({data_var:long_name})
+    return xrdataset
+
+def _drop_metadata(ds):
+    if ds. attrs['metadata']:
+        del ds.attrs['metadata']
