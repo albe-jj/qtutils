@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # @Author: atosat
 # @Date:   2021-06-17 14:05:44
-# @Last Modified by:   TUD278249
-# @Last Modified time: 2021-06-20 14:17:55
+# @Last Modified by:   Alberto Tosato
+# @Last Modified time: 2021-06-29 13:59:24
 
 from scipy import constants
 from qtutils.analysis.plot_utils import * 
@@ -16,7 +16,7 @@ ech = constants.elementary_charge
 eps0 = constants.epsilon_0
 hbar = constants.hbar
 h = constants.h
-G0 = 2*constants.e**2/constants.h
+G0 = constants.e**2/constants.h
 
 def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6, std_xx_tol=1e6, with_plts=True):
     dsr = ds.sel(field=B_slice, Vg=Vg_slice)
