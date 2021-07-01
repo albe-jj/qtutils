@@ -2,40 +2,41 @@
 # @Author: atosato
 # @Date:   2021-04-10 11:23:37
 # @Last Modified by:   Alberto Tosato
-# @Last Modified time: 2021-06-28 17:01:33
+# @Last Modified time: 2021-07-01 08:50:00
 
 import matplotlib.pyplot as plt
 import io
 import win32clipboard
 from PIL import Image
+import matplotlib as mpl
 
 def __init__():
-    # plt.rcParams['figure.dpi'] = 100
-    plt.rcParams['xtick.major.size'] = 7
-    plt.rcParams['xtick.major.width'] = 1.5
-    plt.rcParams['ytick.major.size'] = 7
-    plt.rcParams['ytick.major.width'] = 1.5
-    plt.rcParams['xtick.minor.size'] = 4
-    plt.rcParams['xtick.minor.width'] = 1.5
-    plt.rcParams['ytick.minor.size'] = 4
-    plt.rcParams['ytick.minor.width'] = 1.5
-    plt.rcParams['font.family'] = 'Arial'
-    plt.rcParams['text.usetex'] = False
-    # plt.rc('pdf', fonttype = 42)
-    plt.rcParams['axes.linewidth'] = 2.0
-    plt.rcParams['lines.linewidth'] = 2.5
-    # plt.rcParams["legend.numpoints"] = 1.0
-    # plt.rcParams["legend.frameon"] = False
-    plt.rcParams['font.size'] = 17
-    # plt.rcParams['mathtext.rm'] = 'Arial'
-    plt.rcParams['savefig.format'] = 'svg'
+    # mpl.rcParams['figure.dpi'] = 100
+    mpl.rcParams['xtick.major.size'] = 7
+    mpl.rcParams['xtick.major.width'] = 1.5
+    mpl.rcParams['ytick.major.size'] = 7
+    mpl.rcParams['ytick.major.width'] = 1.5
+    mpl.rcParams['xtick.minor.size'] = 4
+    mpl.rcParams['xtick.minor.width'] = 1.5
+    mpl.rcParams['ytick.minor.size'] = 4
+    mpl.rcParams['ytick.minor.width'] = 1.5
+    mpl.rcParams['font.family'] = 'Arial'
+    mpl.rcParams['text.usetex'] = False
+    # mpl.rc('pdf', fonttype = 42)
+    mpl.rcParams['axes.linewidth'] = 2.0
+    mpl.rcParams['lines.linewidth'] = 2.5
+    # mpl.rcParams["legend.numpoints"] = 1.0
+    # mpl.rcParams["legend.frameon"] = False
+    mpl.rcParams['font.size'] = 17
+    # mpl.rcParams['mathtext.rm'] = 'Arial'
+    mpl.rcParams['savefig.format'] = 'svg'
 
-    plt.rcParams['pdf.fonttype'] = 42 #for illustrator to get editable text (Type 2/TrueType fonts)
-    plt.rcParams['ps.fonttype'] = 42
-    # plt.rcParams['svg.fonttype']='none' #'path'
+    mpl.rcParams['pdf.fonttype'] = 42 #for illustrator to get editable text (Type 2/TrueType fonts)
+    mpl.rcParams['ps.fonttype'] = 42
+    # mpl.rcParams['svg.fonttype']='none' #'path'
 
-    plt.rcParams['savefig.bbox'] = 'tight' #to avoid clipping mask cropping the axis label
-    plt.rcParams['mathtext.fontset'] = 'cm'
+    mpl.rcParams['savefig.bbox'] = 'tight' #to avoid clipping mask cropping the axis label
+    # mpl.rcParams['mathtext.fontset'] = 'cm' #this gives you nice font But! non compatible with illustrator
 
 __init__()
 
