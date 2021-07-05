@@ -2,13 +2,15 @@
 # @Author: atosato
 # @Date:   2021-04-10 11:23:37
 # @Last Modified by:   Alberto Tosato
-# @Last Modified time: 2021-07-01 08:50:00
+# @Last Modified time: 2021-07-02 17:47:58
 
 import matplotlib.pyplot as plt
 import io
 import win32clipboard
 from PIL import Image
 import matplotlib as mpl
+from matplotlib.gridspec import GridSpec
+
 
 def __init__():
     # mpl.rcParams['figure.dpi'] = 100
@@ -27,9 +29,11 @@ def __init__():
     mpl.rcParams['lines.linewidth'] = 2.5
     # mpl.rcParams["legend.numpoints"] = 1.0
     # mpl.rcParams["legend.frameon"] = False
-    mpl.rcParams['font.size'] = 17
-    # mpl.rcParams['mathtext.rm'] = 'Arial'
+    mpl.rcParams['font.size'] = 16
+    mpl.rcParams['mathtext.rm'] = 'Arial'
     mpl.rcParams['savefig.format'] = 'svg'
+    plt.rcParams['mathtext.default'] = 'it'
+
 
     mpl.rcParams['pdf.fonttype'] = 42 #for illustrator to get editable text (Type 2/TrueType fonts)
     mpl.rcParams['ps.fonttype'] = 42
