@@ -2,7 +2,7 @@
 # @Author: atosato
 # @Date:   2021-03-17 11:36:11
 # @Last Modified by:   Alberto Tosato
-# @Last Modified time: 2021-06-28 18:17:19
+# @Last Modified time: 2021-07-16 18:50:46
 import pandas as pd
 import xarray as xr
 from pathlib import Path
@@ -68,10 +68,10 @@ class DataImporter:
             df['V_DC_bias'] = df['dac1 (Vbias (1mV/V))']*1e2 #V??
             set_params += ['V_DC_bias']
             units += ['V']
-        if 'Ibias' in df.columns:
-            df['I_DC_bias'] = df[Ibias]*1e3* 1e-3 #mA
+        if 'dac1 (Ibias (1uA/V))' in df.columns:
+            df['I_DC_bias'] = df['dac1 (Ibias (1uA/V))']*1 #nA
             set_params += ['I_DC_bias']
-            units += ['mA']
+            units += ['nA']
             print('Ibias')
         if 'temperature (temperature)' in df.columns:
             df['Temp'] = df['temperature (temperature)'] #V
