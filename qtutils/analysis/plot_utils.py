@@ -2,7 +2,7 @@
 # @Author: atosato
 # @Date:   2021-04-10 11:23:37
 # @Last Modified by:   Alberto Tosato
-# @Last Modified time: 2021-07-02 17:47:58
+# @Last Modified time: 2021-07-16 14:04:55
 
 import matplotlib.pyplot as plt
 import io
@@ -10,39 +10,12 @@ import win32clipboard
 from PIL import Image
 import matplotlib as mpl
 from matplotlib.gridspec import GridSpec
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
+from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
+from .mpl_styles import article_style, quick_style
 
-
-def __init__():
-    # mpl.rcParams['figure.dpi'] = 100
-    mpl.rcParams['xtick.major.size'] = 7
-    mpl.rcParams['xtick.major.width'] = 1.5
-    mpl.rcParams['ytick.major.size'] = 7
-    mpl.rcParams['ytick.major.width'] = 1.5
-    mpl.rcParams['xtick.minor.size'] = 4
-    mpl.rcParams['xtick.minor.width'] = 1.5
-    mpl.rcParams['ytick.minor.size'] = 4
-    mpl.rcParams['ytick.minor.width'] = 1.5
-    mpl.rcParams['font.family'] = 'Arial'
-    mpl.rcParams['text.usetex'] = False
-    # mpl.rc('pdf', fonttype = 42)
-    mpl.rcParams['axes.linewidth'] = 2.0
-    mpl.rcParams['lines.linewidth'] = 2.5
-    # mpl.rcParams["legend.numpoints"] = 1.0
-    # mpl.rcParams["legend.frameon"] = False
-    mpl.rcParams['font.size'] = 16
-    mpl.rcParams['mathtext.rm'] = 'Arial'
-    mpl.rcParams['savefig.format'] = 'svg'
-    plt.rcParams['mathtext.default'] = 'it'
-
-
-    mpl.rcParams['pdf.fonttype'] = 42 #for illustrator to get editable text (Type 2/TrueType fonts)
-    mpl.rcParams['ps.fonttype'] = 42
-    # mpl.rcParams['svg.fonttype']='none' #'path'
-
-    mpl.rcParams['savefig.bbox'] = 'tight' #to avoid clipping mask cropping the axis label
-    # mpl.rcParams['mathtext.fontset'] = 'cm' #this gives you nice font But! non compatible with illustrator
-
-__init__()
+quick_style()
 
 def two_axis(figsize=[13,4]):
     fig,(ax1,ax2) = plt.subplots(1,2,figsize=figsize)
@@ -55,7 +28,7 @@ def two_axis(figsize=[13,4]):
     return ax1, ax2
 
 
-def to_clipboard(fig=None, format='jpeg'):
+def to_clipboard(fig=None, format='jpeg', tight=True):
     def _send_to_clipboard(clip_type, data):
         win32clipboard.OpenClipboard()
         win32clipboard.EmptyClipboard()
@@ -63,8 +36,8 @@ def to_clipboard(fig=None, format='jpeg'):
         win32clipboard.CloseClipboard()
     if not fig:
         fig = plt.gcf()
-
-    fig.tight_layout()
+    if tight:
+        fig.tight_layout()
     buf = io.BytesIO()
     fig.savefig(buf, format=format)
 

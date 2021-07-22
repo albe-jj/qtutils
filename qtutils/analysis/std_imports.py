@@ -29,3 +29,4 @@ eps0 = constants.epsilon_0
 hbar = constants.hbar
 h = constants.h
 G0 = 2*constants.e**2/constants.h
+kb = constants.k

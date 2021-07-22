@@ -1,0 +1,7 @@
+
+font.family : Arial
+text.usetex : False
+axes.linewidth : 1.0
+lines.linewidth : 2.5
+
+font.size: 8
