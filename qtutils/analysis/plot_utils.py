@@ -16,6 +16,7 @@ from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from .mpl_styles import article_style, quick_style
 
 quick_style()
+inch = 1/2.54 # inch/cm
 
 def two_axis(figsize=[13,4]):
     fig,(ax1,ax2) = plt.subplots(1,2,figsize=figsize)
