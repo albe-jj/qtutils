@@ -91,8 +91,14 @@ class DataImporter:
 			if G_units == '2e^2/h':
 				Gzero = 2*G0
 
-			if 'field' in ds.data_vars:
-				pass#calc invB
+			if 'field' in ds.coords._names:
+				if ds.field.attrs['units']=='T':
+					ds['invB'] = 1 / ds.field 
+				elif ds.field.attrs['units']=='mT':
+					ds['invB'] = 1e3 / ds.field 
+				else:
+					print('could not calculate invB. Units of B are wierd')
+				ds.invB.attrs['units'] = '1/T'
 			
 			# add columns
 		#     ds['R'] = ds.V_AC/ds.I_AC

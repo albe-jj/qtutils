@@ -30,7 +30,7 @@ def article_style():
 def quick_style():
     mpl.rcdefaults()
     mpl.rcParams['figure.dpi'] = 79
-    # mpl.rcParams['figure.figsize'] = (5*inch,4*inch) 
+    mpl.rcParams['figure.figsize'] = (13*inch,9*inch) 
     mpl.rcParams['xtick.major.size'] = 7
     mpl.rcParams['xtick.major.width'] = 1.5
     mpl.rcParams['ytick.major.size'] = 7

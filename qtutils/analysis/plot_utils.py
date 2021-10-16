@@ -14,6 +14,9 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from matplotlib.ticker import (MultipleLocator, AutoMinorLocator)
 from mpl_toolkits.axes_grid1.axes_divider import make_axes_locatable
 from .mpl_styles import article_style, quick_style
+from matplotlib.colors import LinearSegmentedColormap
+
+import numpy as np
 
 quick_style()
 inch = 1/2.54 # inch/cm
@@ -66,4 +69,19 @@ def to_clipboard(fig=None, format='jpeg', tight=True):
     # from PIL import ImageGrab
     # im = ImageGrab.grabclipboard()
 
+def display_cmap(cmap):
+    plt.imshow(np.linspace(0, 100, 256)[None, :],  aspect=25,    interpolation='nearest', cmap=cmap) 
+    plt.axis('off')
 
+
+def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=-1):
+    """
+    Usage example:
+    cmap_t = truncate_colormap(plt.get_cmap(cmap_str), minval=0.1, maxval=0.9)
+    """
+    if n == -1:
+        n = cmap.N
+    new_cmap = LinearSegmentedColormap.from_list(
+         'trunc({name},{a:.2f},{b:.2f})'.format(name=cmap.name, a=minval, b=maxval),
+         cmap(np.linspace(minval, maxval, n)))
+    return new_cmap

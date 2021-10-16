@@ -63,6 +63,7 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
 
 def calc_sdh_dens(da, interp_arr, m, p_trash=2):
     '''
+    !!! GIVES WRONG RESULTS !!!
     Calculate SdH density given a datarray.
     da:
     interp_arr: array used for interpolating 1/B
