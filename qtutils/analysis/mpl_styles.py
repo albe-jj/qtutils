@@ -24,6 +24,11 @@ def article_style():
     mpl.rcParams['ytick.direction'] = 'out'
     mpl.rcParams['xtick.major.width'] = 0.5
     mpl.rcParams['ytick.major.width'] = 0.5
+    mpl.rcParams['xtick.major.size'] = 3 #default 3.5
+    mpl.rcParams['xtick.minor.size'] = 1.7 #default 2.0
+    mpl.rcParams['ytick.major.size'] = 3 #default 3.5
+    mpl.rcParams['ytick.minor.size'] = 1.7 #default 2.0
+
     mpl.rcParams["errorbar.capsize"]= 3
     mpl.rcParams['savefig.bbox'] = 'tight' #to avoid clipping mask cropping the axis label
 

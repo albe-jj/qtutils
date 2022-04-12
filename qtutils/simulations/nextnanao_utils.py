@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 
 """
+valid only for version: 4.2.8.6
 TODO
 add units to all quantities //ds.z.assign_attrs(units='nm')
 add importing of LH quantum 
