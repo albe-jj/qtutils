@@ -39,12 +39,10 @@ get_temp = lambda: lcapp.GetData('T')[2]
 
 # Initialize a Flask app to host the events adapter
 app = Flask(__name__)
-# slack_events_adapter = SlackEventAdapter(os.environ['SLACK_SIGNING_SECRET'], "/slack/events", app)
-slack_events_adapter = SlackEventAdapter('038f1bd4216a757a9928b4ecb30650c6', "/slack/events", app)
+slack_events_adapter = SlackEventAdapter(os.environ['SLACK_SIGNING_SECRET'], "/slack/events", app)
 
 # Initialize a Web API client
-# slack_web_client = WebClient(token=os.environ['SLACK_BOT_TOKEN'])
-slack_web_client = WebClient('xoxb-1462403972165-1465549188354-vzSfIk5NdFIYBTRNn7Badjhq')
+slack_web_client = WebClient(os.environ['SLACK_BOT_TOKEN'])
 print('initialized')
 
 def send_info(user_id: str, channel: str):
