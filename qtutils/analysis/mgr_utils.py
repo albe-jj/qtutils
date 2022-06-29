@@ -31,11 +31,19 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
         print('assuming field in Tesla')
         field_scaling = 1
 
+    # if not sigma_xx in ds:
+    #     dsr['sigma_xx'] = dsr.Rsq/(dsr.Rsq**2+dsr.Rxy**2)/(G0/2)
+    #     dsr.sigma_xx.attrs['units']='e$^2$/h'
+
+    # if not sigma_xx_0 in ds:
+    #     dsr['sigma_xx_0'] = 1/dsr.Rsq.sel(field=0, method='nearest') 
+    #     dsr.sigma_xx_0.attrs['units'] = '$\Omega$'
+
     coef = dsr.Rxy.polyfit(dim='field',deg=1).polyfit_coefficients
 
     dsr['dens'] = (coef[0]*field_scaling*ech*1e4)**-1
     dsr.dens.attrs['units'] = 'cm$^{-2}$'
-    dsr['mob'] = (dsr.dens*ech*dsr.Rsq.sel(field=0, method='nearest'))**-1
+    dsr['mob'] = (dsr.dens*ech*dsr.Rsq.sel(field=0))**-1
     dsr.mob.attrs['units'] = 'cm$^2$/Vs'
 
     dsr = dsr.drop('degree')
