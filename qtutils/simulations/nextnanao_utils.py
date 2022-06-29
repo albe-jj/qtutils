@@ -5,11 +5,14 @@ import numpy as np
 
 """
 TODO
-add units to all quantities //ds.z.assign_attrs(units='nm')
+add units to all quantities //ds.z.assign_attrs(units='nm') 
 add importing of LH quantum 
 """
 class NnDataReader:
     def __init__(self, base_path):
+        '''
+        base path
+        '''
         self.base_path = base_path
 
 
