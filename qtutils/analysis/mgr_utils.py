@@ -25,7 +25,7 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
 
     if dsr.field.attrs['units']=='mT':
         field_scaling = 1e3
-    elif dsr.field.attrs['units']=='mT':
+    elif dsr.field.attrs['units']=='T':
         field_scaling = 1
     else:
         print('assuming field in Tesla')
