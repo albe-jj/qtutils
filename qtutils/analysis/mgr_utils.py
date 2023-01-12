@@ -2,7 +2,7 @@
 # @Author: atosat
 # @Date:   2021-06-17 14:05:44
 # @Last Modified by:   Alberto Tosato
-# @Last Modified time: 2021-06-29 13:59:24
+# @Last Modified time: 2023-01-12 11:59:37
 
 from scipy import constants
 from qtutils.analysis.plot_utils import * 
@@ -64,6 +64,11 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
         plt.show()
     print("max dens = {:.2e}".format(dsr.dens.max().values))
     print("max mob = {:.2e}".format(dsr.mob.max().values))
+
+    # calculate capacitance 
+    coef = dsr.dens.polyfit(dim='Vg',deg=1).polyfit_coefficients
+    capacitance = coef[0] * -ech * 1e3 #1e3 factor to convert mV in V
+    print('capacitance = {:.2f} nF/cm2'.format(capacitance.values*1e9))
 
 
     return dsr
