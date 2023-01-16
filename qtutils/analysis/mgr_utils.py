@@ -70,6 +70,13 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
     capacitance = coef[0] * -ech * 1e3 #1e3 factor to convert mV in V
     print('capacitance = {:.2f} nF/cm2'.format(capacitance.values*1e9))
 
+    # mean free path at peak mobility
+    vg = float(dsr.mob.idxmax('Vg').values)
+    mob = dsr.sel(Vg=vg).mob.values * 1e-4
+    dens = dsr.sel(Vg=vg).dens.values * 1e4
+    lmfp = mob * hbar * (2 * np.pi * dens)**0.5 / ech
+    print('mean free path at peak mob = {:0.3f} um'.format(lmfp*1e6))
+
 
     return dsr
 
@@ -103,3 +110,15 @@ def calc_sdh_dens(da, interp_arr, m, p_trash=2):
     for i in p_dens:
         print('density: {:.2e} cm^-2'.format(i))
     return da_dft
+
+def calc_dens_mob_Hall_effect(ds):
+    dsr = ds
+    dsr['dens'] = (coef[0]*ech*1e4)**-1
+    dsr.dens.attrs['units'] = 'cm$^{-2}$'
+    R_sq_zero_field = dsr.Rsq.sel(field=0, method='nearest').mean()
+    dsr['mob'] = (dsr.dens*ech*R_sq_zero_field)**-1
+    dsr.mob.attrs['units'] = 'cm$^2$/Vs'
+
+    dsr = dsr.drop('degree')
+    print('dens = {:.2e}, mob = {:.2e}'.format(dsr.dens.values, dsr.mob.values))
+    return dsr.dens.values, dsr.mob.values
