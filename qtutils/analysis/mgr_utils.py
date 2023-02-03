@@ -112,7 +112,9 @@ def calc_sdh_dens(da, interp_arr, m, p_trash=2):
     return da_dft
 
 def calc_dens_mob_Hall_effect(ds):
-    dsr = ds
+    dsr = ds.drop_duplicates('field').dropna('field')
+    coef = dsr.Rxy.polyfit(dim='field',deg=1).polyfit_coefficients
+
     dsr['dens'] = (coef[0]*ech*1e4)**-1
     dsr.dens.attrs['units'] = 'cm$^{-2}$'
     R_sq_zero_field = dsr.Rsq.sel(field=0, method='nearest').mean()
