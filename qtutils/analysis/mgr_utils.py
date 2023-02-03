@@ -124,3 +124,29 @@ def calc_dens_mob_Hall_effect(ds):
     dsr = dsr.drop('degree')
     print('dens = {:.2e}, mob = {:.2e}'.format(dsr.dens.values, dsr.mob.values))
     return dsr.dens.values, dsr.mob.values
+
+
+def add_calc_params(ds, aspect_ratio):
+    ds['Rsq'] = ds.Vxx/ds.Iac/aspect_ratio
+    ds['Rxy'] = ds.Vxy/ds.Iac
+
+    ds['sigma_xx'] = ds.Rsq/(ds.Rsq**2+ds.Rxy**2)/(G0)
+    ds.sigma_xx.attrs['units']='e$^2$/h'
+    ds['sigma_xx_0'] = 1/ds.Rsq.sel(field=0, method='nearest')/(G0) # it's less noisy than the one calculated with equation above
+    ds.sigma_xx_0.attrs['units'] = 'x $e^2/h$'
+    ds['sigma_xy'] = ds.Rxy/(ds.Rsq**2+ds.Rxy**2)/(G0)
+
+    ds.sigma_xy.attrs['units']='e$^2$/h'
+    ds['invB'] = 1/ds.field
+    return ds
+
+
+def inv_field(ds):
+    dss = ds.copy()
+    dss = dss.swap_dims({'field':'invB'})
+    dss = dss.sortby('invB').sel(invB=slice(0,100))
+    return dss
+
+
+
+
