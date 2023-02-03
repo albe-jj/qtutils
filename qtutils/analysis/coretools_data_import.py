@@ -2,7 +2,6 @@ from core_tools.data.SQL.connect import set_up_remote_storage
 from core_tools.data.gui.qml.data_browser import data_browser
 from core_tools.data.ds.data_set import load_by_id, load_by_uuid
 from core_tools.data.ds.ds2xarray import ds2xarray
-from qtutils.analysis.std_imports import *
 from qtutils.analysis.mgr_utils import calc_mob_dens, calc_dens_mob_Hall_effect
 import json
 
