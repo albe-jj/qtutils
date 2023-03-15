@@ -30,3 +30,10 @@ hbar = constants.hbar
 h = constants.h
 G0 = 2*constants.e**2/constants.h
 kb = constants.k
+
+
+mob_label = '$\mu\ (\mathrm{cm^{2}/Vs})$'
+dens_label = '$p\ \mathrm{(cm^{-2})}$'
+sigma_label = '$\sigma_{xx,0}\ (\mathrm{e^2/h})$'
+G_label = '$G \ (\mathrm{2e^2/h})$'
+G_diff_label = '$G \ (\mathrm{2e^2/h})$'

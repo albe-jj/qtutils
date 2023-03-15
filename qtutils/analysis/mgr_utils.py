@@ -9,6 +9,7 @@ from qtutils.analysis.plot_utils import *
 from scipy.fft import fft
 import xrft
 from scipy.signal import hilbert, find_peaks
+from scipy.optimize import curve_fit
 
 
 me = constants.electron_mass
@@ -17,6 +18,11 @@ eps0 = constants.epsilon_0
 hbar = constants.hbar
 h = constants.h
 G0 = constants.e**2/constants.h
+mu_B = constants.physical_constants['Bohr magneton'][0]
+
+mob_label = '$\mu\ (\mathrm{cm^{2}/Vs})$'
+dens_label = '$p\ \mathrm{(cm^{-2})}$'
+sigma_label = '$\sigma_{xx,0}\ (\mathrm{e^2/h})$'
 
 def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6, std_xx_tol=1e6, with_plts=True):
     dsr = ds.sel(field=B_slice, Vg=Vg_slice)
@@ -31,6 +37,11 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
         print('assuming field in Tesla')
         field_scaling = 1
 
+    zero_field = 0
+    closest_field_to_zero = dsr.sel(field=0, method='nearest').field.values
+    if closest_field_to_zero!=0:
+        print(f'No data for field=0, assuming zero field at B={closest_field_to_zero} {dsr.field.attrs["units"]}')
+        zero_field = closest_field_to_zero
     # if not sigma_xx in ds:
     #     dsr['sigma_xx'] = dsr.Rsq/(dsr.Rsq**2+dsr.Rxy**2)/(G0/2)
     #     dsr.sigma_xx.attrs['units']='e$^2$/h'
@@ -43,7 +54,7 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
 
     dsr['dens'] = (coef[0]*field_scaling*ech*1e4)**-1
     dsr.dens.attrs['units'] = 'cm$^{-2}$'
-    dsr['mob'] = (dsr.dens*ech*dsr.Rsq.sel(field=0))**-1
+    dsr['mob'] = (dsr.dens*ech*dsr.Rsq.sel(field=zero_field))**-1
     dsr.mob.attrs['units'] = 'cm$^2$/Vs'
 
     dsr = dsr.drop('degree')
@@ -69,6 +80,7 @@ def calc_mob_dens(ds, B_slice=slice(None), Vg_slice=slice(None), std_xy_tol=1e6,
     coef = dsr.dens.polyfit(dim='Vg',deg=1).polyfit_coefficients
     capacitance = coef[0] * -ech * 1e3 #1e3 factor to convert mV in V
     print('capacitance = {:.2f} nF/cm2'.format(capacitance.values*1e9))
+    dsr['capacitance'] = capacitance
 
     # mean free path at peak mobility
     vg = float(dsr.mob.idxmax('Vg').values)
@@ -148,5 +160,47 @@ def inv_field(ds):
     return dss
 
 
+### PERCOLATION DENSITY
+def f_sigma(n,a,np):
+    return a*(n-np)**(1.31) #return sigma
 
 
+def fit_percolation_density(ds_res, dens_cutoff=5.5e10, dens_min=0):
+
+    dss = ds_res.where((ds_res.dens<dens_cutoff) & (ds_res.dens>dens_min)).dropna('Vg')
+    dens = dss.dens.values
+    sigma = dss.sigma_xx_0.values
+
+    pop, pcov = curve_fit(f_sigma, dens, sigma, p0=[1,1e10])
+    
+    percolation = pop[1]
+    print('percolation dens = {:.2e}'.format(percolation))
+
+    ax1, ax2 = two_axis()
+
+    ax1.scatter(dens,sigma)
+    ax1.set_xlabel('$\sigma_{xx,0}\ (\mathrm{e^2/h})$')
+    ax1.set_ylabel('$p\ \mathrm{(cm^{-2})}$')
+    ax1.set_yscale('log')
+
+    dens_arr = np.linspace(dens.min(), dens.max(),100)
+    ax1.plot(dens_arr,f_sigma(dens_arr, *pop), c='r')
+
+
+    ax2.scatter(ds_res.dens,ds_res.sigma_xx_0)
+    ax2.plot(dens_arr,f_sigma(dens_arr, *pop), c='r')
+    ax2.plot(ds_res.dens,f_sigma(ds_res.dens, *pop), c='r', ls='--', alpha=0.8)
+    ax2.set_xlabel('$\sigma_{xx,0}\ (\mathrm{e^2/h})$')
+    ax2.set_ylabel('$p\ \mathrm{(cm^{-2})}$')
+    ax2.set_yscale('log')
+    ds_res['percolation_dens'] = percolation
+    ds_res['perc_fit'] = f_sigma(dens_arr, *pop)
+    ds_res['perc_fit_full'] = f_sigma(ds_res.dens, *pop)
+
+    print('pop', pop)
+    print('pcov', pcov)
+    print('percolation dens = {:.2e}'.format(percolation))
+
+
+
+    return percolation

@@ -146,13 +146,16 @@ def book_ebeam(holder_id, PHPSESSID, personal_data, ebpg_start, ebpg_end, holder
 
 
 
-def book_ebeam_multi_stage(stages, date, personal_data, PHPSESSID):
+def book_ebeam_multi_stage(stages, date, personal_data, PHPSESSID, ebeam_start='22:00'):
     for idx, i in enumerate(stages):
-
-        ebpg_start = pd.to_datetime(date + ' 22:00') + datetime.timedelta(minutes=30 * idx)
+        ebpg_start = pd.to_datetime(date + f' {ebeam_start}') + datetime.timedelta(minutes=30 * idx)
         ebpg_end = ebpg_start + datetime.timedelta(minutes=30)
         holder_start = pd.to_datetime(date + ' 16:00')
         holder_end = holder_start + datetime.timedelta(hours=16)
+        if ebpg_start.time()<pd.to_datetime('09:00').time():
+            holder_start = holder_start -  datetime.timedelta(days=1)
+            holder_end = holder_end -  datetime.timedelta(days=1)
+
 
         holder_id = holder_BW0177[i]
 

@@ -53,7 +53,9 @@ class NnDataReader:
             bias_idx = str(int(idx)).zfill(5)
 
             # import wavefunctions amplitude data
-            dfi_q = pd.read_csv(base_path / f'bias_{bias_idx}' / 'QUantum' / f'wf_amplitudes_shift_quantum_region_HH_0000.dat',delim_whitespace=True)
+            dfi_q = pd.read_csv(base_path / f'bias_{bias_idx}' / 'QUantum' / f'wf_amplitudes_shift_quantum_region_HH_0000.dat',delim_whitespace=True) #new data
+            # dfi_q = pd.read_csv(base_path / f'bias_{bias_idx}' / 'QUantum' / f'amplitudes_shift_quantum_region_HH.dat',delim_whitespace=True) #old nn version
+
             dfi_q = cleanup_cols(dfi_q)
             dfi_q.set_index('x', inplace=True)
 
