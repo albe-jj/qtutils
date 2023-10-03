@@ -17,15 +17,17 @@ set_up_remote_storage('131.180.205.81', 5432, 'scappucci_lab', 'Scappucci!', 've
 
 # data_browser()
 
-def load_ds(uuid):
+def load_ds(uuid, print_info=True):
+    set_up_remote_storage('131.180.205.81', 5432, 'scappucci_lab', 'Scappucci!', 'veldhorst_data', project, setup, sample)
     ds = load_by_uuid(uuid)
-    ts = ds._data_set__data_set_raw.UNIX_start_time
-    ts_str = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
-    te = ds._data_set__data_set_raw.UNIX_stop_time
-    te_str = datetime.utcfromtimestamp(te).strftime('%Y-%m-%d %H:%M:%S')
-    delta_t = te - ts
-    print(f'{ds.set_up} | sample: {ds.sample_name} | start : {ts_str} | measurment time: {int(delta_t/60)} min.')
-    print('Measurement name: ',ds.name)
+    if print_info:
+        ts = ds._data_set__data_set_raw.UNIX_start_time
+        ts_str = datetime.utcfromtimestamp(ts).strftime('%Y-%m-%d %H:%M:%S')
+        te = ds._data_set__data_set_raw.UNIX_stop_time
+        te_str = datetime.utcfromtimestamp(te).strftime('%Y-%m-%d %H:%M:%S')
+        delta_t = te - ts
+        print(f'{ds.set_up} | sample: {ds.sample_name} | start : {ts_str} | measurment time: {int(delta_t/60)} min.')
+        print('Measurement name: ',ds.name)
     return ds2xarray(ds)
 
 figsize = [10,7]

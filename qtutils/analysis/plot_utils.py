@@ -85,3 +85,19 @@ def truncate_colormap(cmap, minval=0.0, maxval=1.0, n=-1):
          'trunc({name},{a:.2f},{b:.2f})'.format(name=cmap.name, a=minval, b=maxval),
          cmap(np.linspace(minval, maxval, n)))
     return new_cmap
+
+
+def format_white(ax, fig, black_bg=True):
+    ax.xaxis.label.set_color('w')        #setting up X-axis label color to yellow
+    ax.yaxis.label.set_color('w')          #setting up Y-axis label color to blue
+
+    ax.tick_params(axis='x', colors='w')    #setting up X-axis tick color to red
+    ax.tick_params(axis='y', colors='w')  #setting up Y-axis tick color to black
+
+    ax.spines['left'].set_color('w')        # setting up Y-axis tick color to red
+    ax.spines['right'].set_color('w')
+    ax.spines['top'].set_color('w')  
+    ax.spines['bottom'].set_color('w')
+
+    if black_bg:
+        fig.set_facecolor('k')
