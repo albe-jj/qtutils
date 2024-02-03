@@ -2,9 +2,9 @@ import pandas as pd
 import xarray as xr
 
 
-from qcodes.data.data_set import load_data
+from qcodes_loop.data.data_set import load_data
 from qcodes.dataset.plotting import plot_dataset
-from qcodes.data.data_array import DataArray
+from qcodes_loop.data.data_array import DataArray
 
 from pathlib import Path
 import yaml
