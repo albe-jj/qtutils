@@ -98,6 +98,7 @@ def format_white(ax, fig, black_bg=True):
     ax.spines['right'].set_color('w')
     ax.spines['top'].set_color('w')  
     ax.spines['bottom'].set_color('w')
+    ax.set_facecolor('none')
 
     if black_bg:
         fig.set_facecolor('k')
