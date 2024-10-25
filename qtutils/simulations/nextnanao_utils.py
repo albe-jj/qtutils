@@ -3,6 +3,35 @@ import pandas as pd
 from pathlib import Path
 import numpy as np
 
+import nextnanopy as nn
+import xarray as xr
+import pandas as pd
+from pathlib import Path
+
+
+# extend DataFile class with method to_xarray
+from nextnanopy.outputs import DataFile
+
+def to_xarray(self):
+    coords_name = [i.name for i in self.coords]
+    data_dict = {}
+    coords_dict = {}
+    for i in self.data:
+        if hasattr(i,'dim'):
+            coords_dict[i.name] = i.value
+        else:
+            data_dict[i.name] = (coords_name, i.value)
+ 
+    ds = xr.Dataset(
+        coords = coords_dict,
+        data_vars = data_dict 
+    )
+    for i in self.data:
+        ds[i.name].attrs['units'] = i.unit
+    return ds 
+DataFile.to_xarray = to_xarray
+
+
 """
 valid only for version: 4.2.8.6
 TODO
@@ -10,11 +39,86 @@ add units to all quantities //ds.z.assign_attrs(units='nm')
 add importing of LH quantum 
 """
 class NnDataReader:
+
+    file_ls = ['bandedges.fld', 'potential.fld', 'electric_field.fld',
+           'Quantum/density_subbands_quantum_region_HH.fld', 
+           'Quantum/probabilities_quantum_region_LH_.fld', 
+           'Quantum/probabilities_quantum_region_HH_.fld', 
+           'Quantum/amplitudes_quantum_region_HH.fld',
+           'Quantum/energy_spectrum_quantum_region_HH_00000.dat',
+           'Quantum/occupation_quantum_region_HH.dat']
+
     def __init__(self, base_path):
         '''
         base path
         '''
         self.base_path = base_path
+
+
+
+    # Importing all files for all biases 
+    def import_all_files_all_biases(self, gate_swept, file_ls=file_ls):
+        '''
+        base_folder: folder containing all data
+        gate_swept: name of gate swept incl units e.g. "Plunger_bias[V]"
+        file_ls: list of files paths to import relative to base_folder 
+        '''
+
+        base_folder = Path(self.base_path)
+        
+    #    get all files names based on folder at bias_00000
+        if file_ls:
+            files = [Path(i) for i in file_ls]
+        else:
+            files = [file.relative_to(base_folder/'bias_00000') for file in Path(base_folder/'bias_00000').rglob('*.fld')]
+            files += [file.relative_to(base_folder/'bias_00000') for file in Path(base_folder/'bias_00000').rglob('*.dat')]
+
+            exclude = 'shift' #as cannot be opened with nextnanopy
+            files = [file for file in files if exclude not in file.name]
+        #     [file.name for file in files]
+
+        gates = pd.read_csv(base_folder / 'bias_points.log', delim_whitespace=True)
+        all_gates = [i for i in gates.columns if 'bias' in i ]
+
+        # [file.name for file in Path(base_folder+'/bias_'+bias_no).glob('*.fld')]
+        data_dict = {}
+        for file in files:
+            ds_ls = []
+            for idx, gates_i in gates.iterrows():
+                bias_no = 'bias_' + str(idx).zfill(5)
+
+                datafile = nn.DataFile(base_folder/bias_no/file, product='nextnano++')
+                ds = datafile.to_xarray()
+                for gate_name in all_gates:
+                    ds[gate_name.replace('_bias[V]','')] = gates_i[gate_name]
+                ds.coords[gate_swept.replace('_bias[V]','')] = gates_i[gate_swept]
+
+                ds_ls.append(ds)
+                dataset_name = file.name.replace('.fld','').replace('.dat', '')
+            data_dict[dataset_name] = xr.concat(ds_ls, dim=gate_swept.replace('_bias[V]',''))
+        return data_dict
+            
+            
+    def import_one_file_all_biases(self, rel_path, gate_swept):
+    # this is actually wrong keeps importing the same file
+        base_folder = Path(self.base_path)
+        rel_path = Path(rel_path)
+        
+        ds_ls = []
+        gates = pd.read_csv(base_folder / 'bias_points.log', delim_whitespace=True)
+        all_gates = [i for i in gates.columns if 'bias' in i ]
+        
+        for idx, gates_i in gates.iterrows():
+            bias_no = 'bias_' + str(idx).zfill(5)
+            datafile_2d = nn.DataFile(base_folder/bias_no/rel_path, product='nextnano++') # 2D .fld file
+            ds = datafile_2d.to_xarray()
+            
+            for gate_name in all_gates:
+                ds[gate_name.replace('_bias[V]','')] = gates_i[gate_name]
+            ds.coords[gate_swept.replace('_bias[V]','')] = gates_i[gate_swept]
+            ds_ls.append(ds)
+
+        return xr.concat(ds_ls, dim=gate_swept.replace('_bias[V]',''))
 
 
     def import_data(self, no_subbands):
