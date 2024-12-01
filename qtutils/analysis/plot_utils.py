@@ -6,7 +6,7 @@
 
 import matplotlib.pyplot as plt
 import io
-import win32clipboard
+# import win32clipboard
 from PIL import Image
 import matplotlib as mpl
 from matplotlib.gridspec import GridSpec
